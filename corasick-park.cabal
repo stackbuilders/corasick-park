@@ -1,0 +1,80 @@
+name:                corasick-park
+version:             0.1.0.0
+synopsis:            Server for substitutions using the Aho-Corasick algorithm.
+description:
+  HTTP server which pre-compiles patterns for text strings based on
+  partial or exact matches. Provides a JSON interface to update
+  patterns, and a JSON interface to apply substitutions. Uses the
+  Aho-Corasick algorithm to efficiently find which patterns are
+  applicable for a given text string.
+
+license:             MIT
+license-file:        LICENSE
+author:              Justin Leitgeb
+maintainer:          justin@stackbuilders.com
+copyright:           2014 Stack Builders Inc.
+category:            Text, Data, Network
+build-type:          Simple
+-- extra-source-files:
+cabal-version:       >=1.10
+
+executable corasick-park
+  main-is:   CorasickPark.hs
+
+  other-modules:       Text.CorasickPark.Algorithm
+                     , Text.CorasickPark.Parser
+                     , Text.CorasickPark.Types
+                     , Text.CorasickPark.Handler.Transform
+                     , Text.CorasickPark.Handler.Update
+                     , Text.CorasickPark.Handler.Utils
+
+  -- other-extensions:
+  build-depends:       base >=4.7 && <4.8
+                     , AhoCorasick
+                     , parsec >= 3.1.2 && <3.2
+                     , MissingH
+                     , snap
+                     , snap-core
+                     , snap-server
+                     , aeson
+                     , lens
+                     , containers
+                     , monads-tf
+                     , snap-extras
+                     , bytestring
+                     , text >=1.1.1.3 && <1.1.2
+
+  hs-source-dirs:    src
+  default-language:    Haskell2010
+
+  ghc-options:      -Wall
+                    -fno-warn-unused-imports
+
+test-suite corasick-park-test
+  type: exitcode-stdio-1.0
+  hs-source-dirs: spec, src
+  main-is: Spec.hs
+  build-depends:       base >=4.7 && <4.8
+
+                     -- Copied from the main build
+                     , AhoCorasick
+                     , parsec >= 3.1.2 && <3.2
+                     , MissingH
+                     , snap
+                     , snap-core
+                     , snap-server
+                     , aeson
+                     , lens
+                     , containers
+                     , monads-tf
+                     , snap-extras
+                     , bytestring
+                     , text >=1.1.1.3 && <1.1.2
+
+                     , hspec2
+
+  default-language:    Haskell2010
+
+source-repository head
+  type:     git
+  location: https://github.com/stackbuilders/corasick-park
