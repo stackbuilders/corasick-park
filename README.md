@@ -10,9 +10,9 @@ Corasick Park is able to apply hundreds of thousands of transactions
 in less than a second by using
 [the Aho-Corasick algorithm](http://en.wikipedia.org/wiki/Aho%E2%80%93Corasick_string_matching_algorithm)
 for finding out which transformations apply to the string you
-provide. Currently the server uses the [AhoCorasick](Aho-Corasick
-implementation in Haskell) for the heavy lifting of finding the
-correct patterns to apply.
+provide. Currently the server uses the
+[Aho-Corasick implementation in Haskell](http://hackage.haskell.org/package/AhoCorasick)
+for the heavy lifting of finding the correct patterns to apply.
 
 Since it is very quick even to precompile hundreds of thousands of
 patterns, the server doesn't persist anything to disk, and uses
