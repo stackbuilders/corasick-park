@@ -21,7 +21,7 @@ data Side = LeftSide | RightSide
 
 -- | Returns a function that retrieves the nearest charactero to a match,
 -- for examining the boundary of the match.
-nearestCharFn :: Side -> (String -> Char)
+nearestCharFn :: Side -> String -> Char
 nearestCharFn RightSide = head
 nearestCharFn LeftSide  = last
 
@@ -33,15 +33,19 @@ spliceText :: String -- ^ Pattern matched
            -> String
 
 spliceText pattern replacement (lboundary, rboundary) (lside, rside) =
-  if (validBoundary lboundary LeftSide lside) &&
-     (validBoundary rboundary RightSide rside) then
-
+  if sidesAreValid then
     lside ++ replacement
+
   else
     lside ++ pattern
 
+  where sidesAreValid =
+          validBoundary lboundary LeftSide lside &&
+          validBoundary rboundary RightSide rside
 
-replace :: String -- ^ Input text string
+
+replace :: String
+        -- ^ Input text string
 
         -> String
         -- ^ Target string
@@ -110,11 +114,11 @@ validBoundary InputBoundary _ t = null t
 
 validBoundary LineBoundary s t =
   validBoundary InputBoundary s t || (nearestC == '\n') || (nearestC == '\r')
-  where nearestC = (nearestCharFn s) t
+  where nearestC = nearestCharFn s t
 
 validBoundary WordBoundary s t =
   validBoundary LineBoundary s t
-  || ((not . C.isAlpha) $ (nearestCharFn s) t)
+  || (not . C.isAlpha) (nearestCharFn s t)
 
 
 matchingSection :: Bool -> String -> Parsec String () String

@@ -42,7 +42,7 @@ transform :: String
           -> String
 transform s stateMachines =
   let allOps = findOperations stateMachines s in
-    foldr applyOperation s (fst allOps ++ snd allOps)
+    foldr applyOperation s $ uncurry (++) allOps
 
 findOperations :: (StateMachine Char Operation, StateMachine Char Operation)
                -> String
@@ -63,8 +63,8 @@ updateStateMachines opmapvar
 
   existingOps <- takeMVar opmapvar
   _ <- putMVar opmapvar $ Map.insert sn
-       ( (generateStateMachine caseSensitiveOps True)
-       , (generateStateMachine nonCaseSensitiveOps False) )
+       ( generateStateMachine caseSensitiveOps True
+       , generateStateMachine nonCaseSensitiveOps False )
        existingOps
 
   return ()

@@ -80,8 +80,8 @@ instance ToJSON Operation where
 
 -- | Map of bucket names pointing to a tuple of case sensitive and non-case
 -- sensitive state machines, respectively
-type OperationMachines = Map.Map String ( (StateMachine Char Operation)
-                                        , (StateMachine Char Operation) )
+type OperationMachines = Map.Map String ( StateMachine Char Operation
+                                        , StateMachine Char Operation )
 
 
 data App = App

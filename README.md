@@ -65,7 +65,7 @@ Then, query the bucket name you created with as many strings as you'd
 like to `/transform`:
 
 ```json
-{ "name": "testbucket", "toTransform": "foo bar baz" }
+{ "name": "testbucket", "input": "foo bar baz" }
 ```
 
 Result:

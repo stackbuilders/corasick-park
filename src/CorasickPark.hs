@@ -16,8 +16,7 @@ import Text.CorasickPark.Handler.Transform (transformHandler)
 import Text.CorasickPark.Handler.Update (updateHandler)
 
 main :: IO ()
-main = do
-  serveSnaplet defaultConfig app
+main = serveSnaplet defaultConfig app
 
 app :: SnapletInit App App
 app = makeSnaplet "app" "Corasick Park text substitution service" Nothing $ do
