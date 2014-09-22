@@ -45,7 +45,7 @@ spliceText pattern replacement (lboundary, rboundary) (lside, rside) =
 replace :: T.Text -- ^ Input text string
 
         -> T.Text
-        -- ^ Text of pattern from match that was found
+        -- ^ Target string
 
         -> T.Text
         -- ^ Replacement

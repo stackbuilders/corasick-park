@@ -59,3 +59,12 @@ spec = do
       it "replaces the first match when False" $ do
         replace "foo foo foo" "foo" "bar"
           (NoBoundary, NoBoundary) True False `shouldBe` "bar foo foo"
+
+    describe "unicode replacement" $ do
+      it "replaces a unicode target with ASCII" $ do
+        replace "Hello World" "Hello World" "你好世界"
+          (NoBoundary, NoBoundary) True False `shouldBe` "你好世界"
+
+      it "replaces ASCII with unicode" $ do
+        replace "你好世界" "你好世界" "Hello World"
+          (NoBoundary, NoBoundary) True False `shouldBe` "Hello World"
