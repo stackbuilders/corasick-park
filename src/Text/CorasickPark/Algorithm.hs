@@ -16,7 +16,6 @@ import Data.List (partition)
 import Data.Aeson
 
 import qualified Data.Map.Strict as Map
-import qualified Data.Text as T
 
 import Text.AhoCorasick
 import Text.CorasickPark.Types
@@ -82,9 +81,8 @@ applyOperation (Operation { target = t
                           , matchType = mt
                           }) s =
 
-  T.unpack $ replace (T.pack s) (T.pack t) (T.pack r)
-                     (leftBoundary mt, rightBoundary mt)
-                     (caseSensitive mt) (global mt)
+  replace s t r (leftBoundary mt, rightBoundary mt)
+                (caseSensitive mt) (global mt)
 
 -- | Given a list of operations, update the state machines to find patterns.
 generateStateMachine :: [Operation] -> Bool -> StateMachine Char Operation
