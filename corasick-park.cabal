@@ -32,7 +32,6 @@ executable corasick-park
   build-depends:       base >=4.7 && <4.8
                      , AhoCorasick
                      , parsec >= 3.1.2 && <3.2
-                     , MissingH
                      , snap
                      , snap-core
                      , snap-server
@@ -58,7 +57,6 @@ test-suite corasick-park-test
                      -- Copied from the main build
                      , AhoCorasick
                      , parsec >= 3.1.2 && <3.2
-                     , MissingH
                      , snap
                      , snap-core
                      , snap-server
