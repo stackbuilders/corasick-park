@@ -19,31 +19,6 @@ type TextEnds = (String, String)
 data Side = LeftSide | RightSide
 
 
--- | Returns a function that retrieves the nearest charactero to a match,
--- for examining the boundary of the match.
-nearestCharFn :: Side -> String -> Char
-nearestCharFn RightSide = head
-nearestCharFn LeftSide  = last
-
-
-spliceText :: String -- ^ Pattern matched
-           -> String -- ^ Text to substitute
-           -> (BoundaryType, BoundaryType) -- ^ Boundaries we need to verify
-           -> TextEnds -- ^ Text chunks broken by matches of pattern
-           -> String
-
-spliceText pattern replacement (lboundary, rboundary) (lside, rside) =
-  if sidesAreValid then
-    lside ++ replacement
-
-  else
-    lside ++ pattern
-
-  where sidesAreValid =
-          validBoundary lboundary LeftSide lside &&
-          validBoundary rboundary RightSide rside
-
-
 replace :: String
         -- ^ Input text string
 
@@ -73,6 +48,30 @@ replace input target replacement boundaries isCaseSensitive isGlobal =
   where parsed =
           parse (parser isCaseSensitive isGlobal target) "(input)" input
 
+
+-- | Returns a function that retrieves the nearest charactero to a match,
+-- for examining the boundary of the match.
+nearestCharFn :: Side -> String -> Char
+nearestCharFn RightSide = head
+nearestCharFn LeftSide  = last
+
+
+spliceText :: String -- ^ Pattern matched
+           -> String -- ^ Text to substitute
+           -> (BoundaryType, BoundaryType) -- ^ Boundaries we need to verify
+           -> TextEnds -- ^ Text chunks broken by matches of pattern
+           -> String
+
+spliceText pattern replacement (lboundary, rboundary) (lside, rside) =
+  if sidesAreValid then
+    lside ++ replacement
+
+  else
+    lside ++ pattern
+
+  where sidesAreValid =
+          validBoundary lboundary LeftSide lside &&
+          validBoundary rboundary RightSide rside
 
 parser :: Bool -> Bool -> String -> Parsec String () [String]
 parser isCaseSensitive isGlobal target = do
