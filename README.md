@@ -22,32 +22,9 @@ Corasick Park allows you to precompile patterns in groups by a
 'bucket' name so that you can easily choose which set of
 transformations to apply for each string.
 
-## Current Functionality
-
-* HTTP (JSON) service for describing and applying basic string
-  substitutions
-* Case sensitive pattern application. The user can describe either
-  case-sensitive or non-case-sensitive transformations, and Corasick
-  Park quickly finds and applies these transformations by generating
-  two state machines - one with the downcased patterns to apply and
-  one without modifying case.
-* Ability to replace one string or all occurrences in the input
-  (`isGlobal` option).
-* Selectively apply matches based on the boundaries of the target
-  string (specified separately for each side of the match):
-  * `none` - there is no requirement for the type of boundary around
-    the string
-  * `word` - the match must be surrounded by word boundaries (similar
-    to `\b` in a Ruby regular expression
-  * `line` - there must be a newline at the specified side of the
-    match
-  * `input` - the input boundary must be on the specified side of the
-    match. To specify that the match needs to be exact, just put an
-    input boundary on both sides.
-
 ## Interface
 
-Post the transformations that you wish to apply to `/operations`:
+`POST` the transformations that you wish to apply to `/operations`:
 
 ```json
 { "name": "testbucket", "operations":
@@ -61,8 +38,8 @@ Post the transformations that you wish to apply to `/operations`:
 }
 ```
 
-Then, query the bucket name you created with as many strings as you'd
-like to `/transform`:
+Then, apply the transformations you specified by submitting a `POST`
+request to the `/transform` endpoint:
 
 ```json
 { "name": "testbucket", "input": "foo bar baz" }
@@ -81,6 +58,25 @@ first try posting to a particular bucket to apply a transformation,
 and if the server returns a 404 (bucket not found) the client should
 post all of the transformations again, and then re-try the
 transformation endpoint.
+
+## Configuring patterns
+
+Corasick Park doesn't have full support for regular
+expressions. However you can customize the patterns that are matched
+for replacements by specifying case sensitivity (`isCaseSensitive`
+option), global or single replacement (`isGlobal` option), and the
+types of boundaries on each side of the pattern you specified. The
+currently supported boundaries, which can be supplied to the
+`leftBoundaryType` and `rightBoundaryType` option are:
+
+* `none` - there is no requirement for the type of boundary around the
+  string
+* `word` - the match must be surrounded by word boundaries (similar to
+  `\b` in a Ruby regular expression
+* `line` - there must be a newline at the specified side of the match
+* `input` - the input boundary must be on the specified side of the
+    match. To specify that the match needs to be exact, just put an
+    input boundary on both sides.
 
 ## Author
 
