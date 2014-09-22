@@ -35,11 +35,11 @@ executable corasick-park
                      , snap
                      , snap-core
                      , snap-server
+                     , snap-extras
                      , aeson
                      , lens
                      , containers
                      , monads-tf
-                     , snap-extras
                      , bytestring
 
   hs-source-dirs:    src
@@ -60,11 +60,11 @@ test-suite corasick-park-test
                      , snap
                      , snap-core
                      , snap-server
+                     , snap-extras
                      , aeson
                      , lens
                      , containers
                      , monads-tf
-                     , snap-extras
                      , bytestring
 
                      , hspec2
