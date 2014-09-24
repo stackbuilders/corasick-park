@@ -11,7 +11,7 @@ import Data.List (intercalate)
 
 import qualified Data.Char as C
 
-import Control.Applicative ((<|>), (<*))
+import Control.Applicative ((<|>), (<*), (*>), (<*>))
 
 import Text.CorasickPark.Types (BoundaryType(..), Target(..))
 
@@ -30,7 +30,6 @@ replace input target replacement =
   case parse (parser target) "(input)" input of
     Left _        -> input
     Right matches -> intercalate replacement matches
-
 
 parser :: Target -> Parsec String () [String]
 parser target = do
@@ -51,24 +50,34 @@ caseInsensitiveChar c = char (C.toLower c) <|> char (C.toUpper c)
 
 caseInsensitiveString s = try (mapM caseInsensitiveChar s) <?> "\"" ++ s ++ "\""
 
-endingInWordBoundary :: Parsec String () String
-endingInWordBoundary = do
-  tillEnd <- manyTill anyChar (lookAhead (try (satisfy (not . C.isAlpha))))
-  lastChar <- satisfy (not . C.isAlpha)
-  eof
-  return $ tillEnd ++ [lastChar]
+lhsParser :: Parsec String () String -> BoundaryType -> Parsec String () String
+lhsParser strParser NoBoundary = manyTill anyChar (try strParser)
 
-lhsParser :: BoundaryType -> Parsec String () String
-lhsParser NoBoundary = manyTill anyChar eof
-lhsParser InputBoundary = eof >> return ""
+lhsParser strParser InputBoundary = strParser >> return ""
 
-lhsParser LineBoundary =
-  (try (lhsParser InputBoundary) <|> manyTill anyChar (char '\n' <|> char '\r'))
-  <* eof
+lhsParser strParser LineBoundary =
+  (try (lhsParser strParser InputBoundary)) <|> lineBoundaryParser
 
-lhsParser WordBoundary =
-  (try (lhsParser InputBoundary)) <|> (try (lhsParser LineBoundary))
-  <|> endingInWordBoundary
+  where lineBoundaryParser = do
+          toLineBoundary <-
+            manyTill anyChar (lookAhead (try (char '\n' <|> char '\r') *> strParser))
+
+          newlineChar <- (char '\n' <|> char '\r')
+          _ <- strParser
+          return $ toLineBoundary ++ [newlineChar]
+
+
+lhsParser strParser WordBoundary =
+  try (lhsParser strParser LineBoundary)
+  <|> wordBoundaryParser
+
+  where wordBoundaryParser = do
+          toMatchBoundary <-
+            manyTill anyChar (lookAhead (try (satisfy (not . C.isAlpha) *> strParser)))
+
+          nonWordChar <- satisfy (not . C.isAlpha)
+          _ <- strParser
+          return $ toMatchBoundary ++ [nonWordChar]
 
 rhsParser :: BoundaryType -> Parsec String () String
 rhsParser NoBoundary = manyTill anyChar eof
@@ -81,7 +90,8 @@ rhsParser LineBoundary =
     return $ [eolChar] ++ rest
 
 rhsParser WordBoundary =
-  (try (rhsParser LineBoundary)) <|> do
+  try (rhsParser LineBoundary)
+  <|> do
     notWordChar <- satisfy (not . C.isAlpha)
     rest <- manyTill anyChar eof
     return $ [notWordChar] ++ rest
@@ -93,16 +103,10 @@ targetParser Target { text = txt
                     , rightBoundary = rboundary
                     } = do
 
-  prefix <- manyTill anyChar (lookAhead (try casedText))
-  _  <- casedText
-  suffix <- lookAhead (try (manyTill anyChar eof))
+  prefix <- lhsParser casedText lboundary
+  _ <- lookAhead (try (rhsParser rboundary))
 
-  case parse (lhsParser lboundary) "(prefix)" prefix of
-    Left _ -> fail "Invalid LHS boundary"
-    Right _ ->
-      case parse (rhsParser rboundary) "(suffix)" suffix of
-        Left _ -> fail "Invalid RHS boundary"
-        Right _ -> return prefix
+  return prefix
 
   where casedText = if isCaseSensitive
                       then string txt

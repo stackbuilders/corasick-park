@@ -21,7 +21,7 @@ spec = do
         replace "beforefooafter" tgt "bar" `shouldBe` "beforebarafter"
 
       it "does not replace when pattern does not match" $ do
-        let tgt = tgt { text          = "foo"
+        let tgt = Target { text          = "foo"
                       , caseSensitive = False
                       , leftBoundary  = NoBoundary
                       , rightBoundary = NoBoundary
