@@ -19,7 +19,7 @@ import qualified Data.Map.Strict as Map
 
 
 import Text.CorasickPark.Handler.Utils (errorMessage, successMessage)
-import Text.CorasickPark.Algorithm (transform)
+import Text.CorasickPark.Algorithm (findAndApplyTransformations)
 
 data TransformRequest = TransformRequest { operationGroup :: String
                                          , input :: String
@@ -33,7 +33,7 @@ instance FromJSON TransformRequest where
 
 instance ToJSON TransformRequest where
   toJSON (TransformRequest nm inputString) =
-    object [ "name"        .= nm
+    object [ "name"  .= nm
            , "input" .= inputString
            ]
 
@@ -60,5 +60,7 @@ transformHandler = method POST transformer
               writeJSON $ errorMessage "Requested operation bucket not found."
 
             Just machines -> do
-              let newString = transform (input transformReq) machines
+              let newString = findAndApplyTransformations (input transformReq)
+                              machines
+
               writeJSON $ successMessage newString

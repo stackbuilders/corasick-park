@@ -1,9 +1,9 @@
 {-# LANGUAGE OverloadedStrings #-}
 
 module Text.CorasickPark.Algorithm
-       ( OperationSet(..),
-         updateStateMachines
-       , transform
+       ( OperationSet(..)
+       , findAndApplyTransformations
+       , updateStateMachines
        ) where
 
 import Control.Concurrent (MVar, takeMVar, putMVar)
@@ -19,6 +19,7 @@ import qualified Data.Map.Strict as Map
 
 import Text.AhoCorasick
 import Text.CorasickPark.Types
+
 import Text.CorasickPark.Parser (replace)
 
 data OperationSet = OperationSet { setName       :: !String
@@ -31,18 +32,16 @@ instance FromJSON OperationSet where
                          v .: "operations"
   parseJSON _          = mzero
 
-instance ToJSON OperationSet where
-  toJSON (OperationSet nm allOps) =
-    object [ "name"       .= nm
-           , "operations" .= allOps
-           ]
-
-transform :: String
-          -> (StateMachine Char Operation, StateMachine Char Operation)
-          -> String
-transform s stateMachines =
+-- | Searches for all transformations in the given state machine
+-- selectively applies the ones that match based on boundaries.
+findAndApplyTransformations :: String
+                            -> ( StateMachine Char Operation
+                               , StateMachine Char Operation)
+                            -> String
+findAndApplyTransformations s stateMachines =
   let allOps = findOperations stateMachines s in
     foldr applyOperation s $ uncurry (++) allOps
+
 
 findOperations :: (StateMachine Char Operation, StateMachine Char Operation)
                -> String
@@ -63,36 +62,44 @@ updateStateMachines opmapvar
 
   existingOps <- takeMVar opmapvar
   _ <- putMVar opmapvar $ Map.insert sn
-       ( generateStateMachine caseSensitiveOps True
-       , generateStateMachine nonCaseSensitiveOps False )
+       ( generateStateMachine caseSensitiveOps
+       , generateStateMachine nonCaseSensitiveOps )
        existingOps
 
   return ()
 
-  where isCaseSensitive (Operation { matchType = MatchType {
+  where isCaseSensitive (Operation { target = Target {
                                         caseSensitive = True } }) = True
-        isCaseSensitive (Operation { matchType = MatchType {
+        isCaseSensitive (Operation { target = Target {
                                         caseSensitive = False } }) = False
 
 
 applyOperation :: Operation -> String -> String
-applyOperation (Operation { target = t
-                          , replacement = r
-                          , matchType = mt
-                          }) s =
+applyOperation
+  (Operation { target =
+                  Target { text          = targetText
+                         , caseSensitive = isCaseSensitive
+                         , leftBoundary  = lboundary
+                         , rightBoundary = rboundary  }
 
-  replace s t r (leftBoundary mt, rightBoundary mt)
-                (caseSensitive mt) (global mt)
+             , global    = isGlobal
+             , transform = Replace replacement
+             }) input =
+
+  replace input targetText replacement (lboundary, rboundary)
+    isCaseSensitive isGlobal
 
 -- | Given a list of operations, update the state machines to find patterns.
-generateStateMachine :: [Operation] -> Bool -> StateMachine Char Operation
-generateStateMachine ops isCaseSensitive =
-  makeStateMachine $ map (opToState isCaseSensitive) ops
+generateStateMachine :: [Operation] -> StateMachine Char Operation
+generateStateMachine ops =
+  makeStateMachine $ map opToState ops
 
 -- | Turns our Operation structure into a tuple that can be consumed by
 -- the AhoCorasick library.
-opToState :: Bool -> Operation -> (String, Operation)
-opToState isCaseSensitive (Operation tpe toTarget toReplace) =
-  (applyCase toTarget, Operation tpe toTarget toReplace)
+opToState :: Operation -> (String, Operation)
+opToState op =
+  (applyCase ((text . target) op), op)
 
-  where applyCase str = if isCaseSensitive then str else map toLower str
+  where applyCase str = if ((caseSensitive . target) op)
+                          then str
+                          else map toLower str

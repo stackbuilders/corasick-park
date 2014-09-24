@@ -12,12 +12,65 @@ import Control.Lens.TH (makeLenses)
 import Snap (Handler)
 
 import qualified Data.Map.Strict as Map
+import qualified Data.HashMap.Strict as HM
+import qualified Data.Text as T
 
 data BoundaryType = NoBoundary
                   | WordBoundary
                   | LineBoundary
                   | InputBoundary
                   deriving (Show, Eq)
+
+data Operation = Operation { target    :: !Target
+                           , transform :: !Transform
+                           , global    :: !Bool
+                           } deriving (Show, Eq)
+
+data Target = Target { text          :: !String
+                     , caseSensitive :: !Bool
+                     , leftBoundary  :: !BoundaryType
+                     , rightBoundary :: !BoundaryType
+                     } deriving (Show, Eq)
+
+data Transform = Replace String
+               | Upcase
+               | Downcase
+               | Titleize
+               deriving (Show, Eq)
+
+
+instance FromJSON Operation where
+  parseJSON (Object v) = Operation <$>
+                         v .: "target" <*>
+                         v .: "transform" <*>
+                         v .: "isGlobal"
+  parseJSON _          = mzero
+
+instance FromJSON Target where
+  parseJSON (Object v) = Target <$>
+                         v .: "text" <*>
+                         v .: "isCaseSensitive" <*>
+                         v .: "leftBoundaryType" <*>
+                         v .: "rightBoundaryType"
+  parseJSON _          = mzero
+
+instance FromJSON Transform where
+  parseJSON (Object v) = do
+    case HM.lookup (T.pack "type") v of
+      Nothing -> undefined
+      Just s -> do
+        case s of
+          String "replace" ->
+            case HM.lookup (T.pack "replacement") v of
+              Just (String repl) -> return $ Replace (T.unpack repl)
+              _ -> mzero
+
+          String "upcase"     -> return Upcase
+          String "downcase"   -> return Downcase
+          String "titleize"   -> return Titleize
+          _                   -> mzero
+
+  parseJSON _ = mzero
 
 instance FromJSON BoundaryType where
   parseJSON (String "none")  = return NoBoundary
@@ -26,57 +79,7 @@ instance FromJSON BoundaryType where
   parseJSON (String "input") = return InputBoundary
   parseJSON _                = mzero
 
-instance ToJSON BoundaryType where
-  toJSON NoBoundary    = "none"
-  toJSON WordBoundary  = "word"
-  toJSON LineBoundary  = "line"
-  toJSON InputBoundary = "input"
 
-
-type CaseSensitive = Bool
-
-data MatchType = MatchType { caseSensitive :: !Bool
-                           , global        :: !Bool
-                           , leftBoundary  :: !BoundaryType
-                           , rightBoundary :: !BoundaryType
-                           } deriving (Show, Eq)
-
-instance FromJSON MatchType where
-  parseJSON (Object v) = MatchType <$>
-                         v .: "isCaseSensitive" <*>
-                         v .: "isGlobal" <*>
-                         v .: "leftBoundaryType" <*>
-                         v .: "rightBoundaryType"
-  parseJSON _          = mzero
-
-instance ToJSON MatchType where
-     toJSON (MatchType caseSens isGlob lBoundary rBoundary) =
-       object [ "isCaseSensitive"   .= caseSens
-              , "isGlobal"          .= isGlob
-              , "leftBoundaryType"  .= lBoundary
-              , "rightBoundaryType" .= rBoundary
-              ]
-
-data Operation = Operation { matchType   :: !MatchType
-                           , target      :: !String
-                           , replacement :: !String
-                           } deriving (Show, Eq)
-
-
-instance FromJSON Operation where
-  parseJSON (Object v) = Operation <$>
-                         v .: "matchType" <*>
-                         v .: "target" <*>
-                         v .: "replacement"
-  parseJSON _          = mzero
-
-
-instance ToJSON Operation where
-     toJSON (Operation mType toTarget toReplace) =
-       object [ "matchType"   .= mType
-              , "target"      .= toTarget
-              , "replacement" .= toReplace
-              ]
 
 -- | Map of bucket names pointing to a tuple of case sensitive and non-case
 -- sensitive state machines, respectively
