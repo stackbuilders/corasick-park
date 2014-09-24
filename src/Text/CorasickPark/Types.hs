@@ -23,13 +23,13 @@ data BoundaryType = NoBoundary
 
 data Operation = Operation { target    :: !Target
                            , transform :: !Transform
-                           , global    :: !Bool
                            } deriving (Show, Eq)
 
 data Target = Target { text          :: !String
                      , caseSensitive :: !Bool
                      , leftBoundary  :: !BoundaryType
                      , rightBoundary :: !BoundaryType
+                     , global        :: !Bool
                      } deriving (Show, Eq)
 
 data Transform = Replace String
@@ -52,8 +52,7 @@ instance FromJSON OperationSet where
 instance FromJSON Operation where
   parseJSON (Object v) = Operation <$>
                          v .: "target" <*>
-                         v .: "transform" <*>
-                         v .: "isGlobal"
+                         v .: "transform"
   parseJSON _          = mzero
 
 instance FromJSON Target where
@@ -61,7 +60,8 @@ instance FromJSON Target where
                          v .: "text" <*>
                          v .: "isCaseSensitive" <*>
                          v .: "leftBoundaryType" <*>
-                         v .: "rightBoundaryType"
+                         v .: "rightBoundaryType" <*>
+                         v .: "isGlobal"
   parseJSON _          = mzero
 
 instance FromJSON Transform where

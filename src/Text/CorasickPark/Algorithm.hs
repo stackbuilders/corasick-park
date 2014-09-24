@@ -63,18 +63,11 @@ updateStateMachines opmapvar
 
 applyOperation :: Operation -> String -> String
 applyOperation
-  (Operation { target =
-                  Target { text          = targetText
-                         , caseSensitive = isCaseSensitive
-                         , leftBoundary  = lboundary
-                         , rightBoundary = rboundary  }
-
-             , global    = isGlobal
+  (Operation { target = tgt
              , transform = Replace replacement
              }) input =
 
-  replace input targetText replacement (lboundary, rboundary)
-    isCaseSensitive isGlobal
+  replace input tgt replacement
 
 -- | Given a list of operations, update the state machines to find patterns.
 generateStateMachine :: [Operation] -> StateMachine Char Operation

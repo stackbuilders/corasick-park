@@ -12,63 +12,132 @@ spec = do
   describe "replace" $ do
     describe "with NoBoundary on RHS and LHS" $ do
       it "matches when the string matches" $ do
-        replace "beforefooafter" "foo" "bar"
-          (NoBoundary, NoBoundary) True False `shouldBe` "beforebarafter"
+        let tgt = Target { text          = "foo"
+                         , caseSensitive = False
+                         , leftBoundary  = NoBoundary
+                         , rightBoundary = NoBoundary
+                         , global        = False }
+
+        replace "beforefooafter" tgt "bar" `shouldBe` "beforebarafter"
 
       it "does not replace when pattern does not match" $ do
-        replace "beforeNOTHINGafter" "foo" "bar"
-          (NoBoundary, NoBoundary) True False `shouldBe` "beforeNOTHINGafter"
+        let tgt = tgt { text          = "foo"
+                      , caseSensitive = False
+                      , leftBoundary  = NoBoundary
+                      , rightBoundary = NoBoundary
+                      , global        = False }
+
+        replace "beforeNOTHINGafter" tgt "bar" `shouldBe` "beforeNOTHINGafter"
 
       it "matches strings, case insensitive" $ do
-        replace "BEforeFOOafter" "foo" "bar"
-          (NoBoundary, NoBoundary) False False `shouldBe` "BEforebarafter"
+        let tgt = Target { text          = "foo"
+                         , caseSensitive = False
+                         , leftBoundary  = NoBoundary
+                         , rightBoundary = NoBoundary
+                         , global        = False }
+
+        replace "BEforeFOOafter" tgt "bar" `shouldBe` "BEforebarafter"
 
       it "doesn't modify the case of the original string if boundaries don't match" $ do
-        replace "before fOo after" "foo" "bar"
-          (InputBoundary, InputBoundary) False False `shouldBe` "before fOo after"
+        let tgt = Target { text          = "foo"
+                         , caseSensitive = False
+                         , leftBoundary  = InputBoundary
+                         , rightBoundary = InputBoundary
+                         , global        = False }
+
+        replace "before fOo after" tgt "bar" `shouldBe` "before fOo after"
 
     describe "with WordBoundary" $ do
       it "matches when the word boundary is on both sides of the word" $ do
-        replace "before foo after" "foo" "bar"
-          (WordBoundary, WordBoundary) True False `shouldBe` "before bar after"
+        let tgt = Target { text          = "foo"
+                         , caseSensitive = False
+                         , leftBoundary  = WordBoundary
+                         , rightBoundary = WordBoundary
+                         , global        = False }
+
+        replace "before foo after" tgt "bar" `shouldBe` "before bar after"
 
       it "does not match when there isn't a word boundary" $ do
-        replace "beforefooafter" "foo" "bar"
-          (WordBoundary, WordBoundary) True False `shouldBe` "beforefooafter"
+        let tgt = Target { text          = "foo"
+                         , caseSensitive = False
+                         , leftBoundary  = WordBoundary
+                         , rightBoundary = WordBoundary
+                         , global        = False }
+
+        replace "beforefooafter" tgt "bar" `shouldBe` "beforefooafter"
 
     describe "with LineBoundary" $ do
       it "matches strings" $ do
-        replace "before\nfoo\nafter" "foo" "bar"
-          (LineBoundary, LineBoundary) True False `shouldBe` "before\nbar\nafter"
+        let tgt = Target { text          = "foo"
+                            , caseSensitive = False
+                            , leftBoundary  = LineBoundary
+                            , rightBoundary = LineBoundary
+                            , global        = False }
+
+        replace "before\nfoo\nafter" tgt "bar" `shouldBe` "before\nbar\nafter"
 
       it "does not match when there isn't a line boundary before and after the terms" $ do
-        replace "beforefooafter" "foo" "bar"
-          (LineBoundary, LineBoundary) True False `shouldBe` "beforefooafter"
+        let tgt = Target { text          = "foo"
+                            , caseSensitive = False
+                            , leftBoundary  = LineBoundary
+                            , rightBoundary = LineBoundary
+                            , global        = False }
+
+        replace "beforefooafter" tgt "bar" `shouldBe` "beforefooafter"
 
     describe "with InputBoundary" $ do
       it "matches strings" $ do
-        replace "foo" "foo" "bar"
-          (InputBoundary, InputBoundary) True False `shouldBe` "bar"
+        let tgt = Target { text          = "foo"
+                         , caseSensitive = False
+                         , leftBoundary  = InputBoundary
+                         , rightBoundary = InputBoundary
+                         , global        = False }
+
+        replace "foo" tgt "bar" `shouldBe` "bar"
 
       it "does not match when there isn't a line boundary before and after the terms" $ do
-        replace "before\nfoo\nafter" "foo" "bar"
-          (InputBoundary, InputBoundary) True False `shouldBe` "before\nfoo\nafter"
+        let tgt = Target { text          = "foo"
+                            , caseSensitive = False
+                            , leftBoundary  = InputBoundary
+                            , rightBoundary = InputBoundary
+                            , global        = False }
+
+        replace "before\nfoo\nafter" tgt "bar" `shouldBe` "before\nfoo\nafter"
 
     describe "global replacement" $ do
       it "replaces all matches when True" $ do
-        replace "foo foo foo" "foo" "bar"
-          (NoBoundary, NoBoundary) True True `shouldBe` "bar bar bar"
+        let tgt = Target { text          = "foo"
+                         , caseSensitive = False
+                         , leftBoundary  = NoBoundary
+                         , rightBoundary = NoBoundary
+                         , global        = True }
 
+        replace "foo foo foo" tgt "bar" `shouldBe` "bar bar bar"
 
       it "replaces the first match when False" $ do
-        replace "foo foo foo" "foo" "bar"
-          (NoBoundary, NoBoundary) True False `shouldBe` "bar foo foo"
+        let tgt = Target { text          = "foo"
+                         , caseSensitive = False
+                         , leftBoundary  = NoBoundary
+                         , rightBoundary = NoBoundary
+                         , global        = False }
+
+        replace "foo foo foo" tgt "bar" `shouldBe` "bar foo foo"
 
     describe "unicode replacement" $ do
       it "replaces a unicode target with ASCII" $ do
-        replace "Hello World" "Hello World" "你好世界"
-          (NoBoundary, NoBoundary) True False `shouldBe` "你好世界"
+        let tgt = Target { text          = "你好世界"
+                         , caseSensitive = False
+                         , leftBoundary  = NoBoundary
+                         , rightBoundary = NoBoundary
+                         , global        = False }
+
+        replace "Hello World" tgt "Hello World" `shouldBe` "Hello World"
 
       it "replaces ASCII with unicode" $ do
-        replace "你好世界" "你好世界" "Hello World"
-          (NoBoundary, NoBoundary) True False `shouldBe` "Hello World"
+        let tgt = Target { text          = "你好世界"
+                         , caseSensitive = False
+                         , leftBoundary  = NoBoundary
+                         , rightBoundary = NoBoundary
+                         , global        = False }
+
+        replace "你好世界" tgt "Hello World" `shouldBe` "Hello World"
