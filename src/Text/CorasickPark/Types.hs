@@ -38,6 +38,16 @@ data Transform = Replace String
                | Titleize
                deriving (Show, Eq)
 
+data OperationSet = OperationSet { setName       :: !String
+                                 , allOperations :: ![Operation]
+                                 } deriving (Show, Eq)
+
+
+instance FromJSON OperationSet where
+  parseJSON (Object v) = OperationSet <$>
+                         v .: "name" <*>
+                         v .: "operations"
+  parseJSON _          = mzero
 
 instance FromJSON Operation where
   parseJSON (Object v) = Operation <$>

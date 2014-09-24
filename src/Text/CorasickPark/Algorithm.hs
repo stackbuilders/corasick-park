@@ -7,13 +7,9 @@ module Text.CorasickPark.Algorithm
        ) where
 
 import Control.Concurrent (MVar, takeMVar, putMVar)
-import Control.Applicative ((<$>), (<*>))
-import Control.Monad (mzero)
 
 import Data.Char (toLower)
 import Data.List (partition)
-
-import Data.Aeson
 
 import qualified Data.Map.Strict as Map
 
@@ -22,15 +18,6 @@ import Text.CorasickPark.Types
 
 import Text.CorasickPark.Parser (replace)
 
-data OperationSet = OperationSet { setName       :: !String
-                                 , allOperations :: ![Operation]
-                                 } deriving (Show, Eq)
-
-instance FromJSON OperationSet where
-  parseJSON (Object v) = OperationSet <$>
-                         v .: "name" <*>
-                         v .: "operations"
-  parseJSON _          = mzero
 
 -- | Searches for all transformations in the given state machine
 -- selectively applies the ones that match based on boundaries.
