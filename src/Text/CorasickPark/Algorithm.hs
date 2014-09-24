@@ -16,7 +16,9 @@ import qualified Data.Map.Strict as Map
 import Text.AhoCorasick
 import Text.CorasickPark.Types
 
-import Text.CorasickPark.Parser (replace, transformWith)
+import Text.Inflections.Parse.Types (Word(..))
+
+import Text.CorasickPark.Parser (replace, transformWith, titleize)
 
 
 -- | Searches for all transformations in the given state machine
@@ -65,23 +67,22 @@ applyOperation :: Operation -> String -> String
 applyOperation
   (Operation { target = tgt
              , transform = Replace replacement
-             }) input =
-
-  replace input tgt replacement
+             }) input = replace input tgt replacement
 
 applyOperation
   (Operation { target = tgt
              , transform = Upcase
-             }) input =
-
-  transformWith input tgt (map toUpper)
+             }) input = transformWith input tgt (map toUpper)
 
 applyOperation
   (Operation { target = tgt
              , transform = Downcase
-             }) input =
+             }) input = transformWith input tgt (map toLower)
 
-  transformWith input tgt (map toLower)
+applyOperation
+  (Operation { target = tgt
+             , transform = Titleize
+             }) input = titleize input tgt
 
 -- | Given a list of operations, update the state machines to find patterns.
 generateStateMachine :: [Operation] -> StateMachine Char Operation

@@ -1,6 +1,6 @@
 {-# LANGUAGE OverloadedStrings #-}
 
-module Text.CorasickPark.Parser (replace, transformWith) where
+module Text.CorasickPark.Parser (replace, transformWith, titleize) where
 
 import Text.Parsec.Prim hiding ((<|>))
 import Text.Parsec.Char
@@ -10,6 +10,9 @@ import Text.Parsec ()
 import Data.List (intercalate)
 
 import qualified Data.Char as C
+
+import qualified Text.Inflections as I
+import Text.Inflections.Parse.Types (Word(..))
 
 import Control.Applicative ((<|>), (<*), (*>), (<*>))
 
@@ -31,13 +34,23 @@ replace input target replacement =
 transformWith :: String -- ^ Input text string
               -> Target -- ^ Target to match
               -> (String -> String)
-              -> String -- ^ String with matching terms downcased
+              -> String -- ^ String with transformation function applied
 transformWith input target fn =
     case parse (parser target) "(input)" input of
     Left _        -> input
     Right matches -> intercalate withFn matches
 
     where withFn = fn (text target)
+
+titleize :: String -- ^ Input text string
+            -> Target -- ^ Target to match
+            -> String -- ^ String with matching terms titleized
+titleize input target =
+    case parse (parser target) "(input)" input of
+    Left _        -> input
+    Right matches -> intercalate titleized matches
+
+    where titleized = I.titleize $ map Word $ words (text target)
 
 parser :: Target -> Parsec String () [String]
 parser target = do
