@@ -8,7 +8,7 @@ module Text.CorasickPark.Algorithm
 
 import Control.Concurrent (MVar, takeMVar, putMVar)
 
-import Data.Char (toLower)
+import Data.Char (toLower, toUpper)
 import Data.List (partition)
 
 import qualified Data.Map.Strict as Map
@@ -16,7 +16,7 @@ import qualified Data.Map.Strict as Map
 import Text.AhoCorasick
 import Text.CorasickPark.Types
 
-import Text.CorasickPark.Parser (replace)
+import Text.CorasickPark.Parser (replace, transformWith)
 
 
 -- | Searches for all transformations in the given state machine
@@ -68,6 +68,20 @@ applyOperation
              }) input =
 
   replace input tgt replacement
+
+applyOperation
+  (Operation { target = tgt
+             , transform = Upcase
+             }) input =
+
+  transformWith input tgt (map toUpper)
+
+applyOperation
+  (Operation { target = tgt
+             , transform = Downcase
+             }) input =
+
+  transformWith input tgt (map toLower)
 
 -- | Given a list of operations, update the state machines to find patterns.
 generateStateMachine :: [Operation] -> StateMachine Char Operation

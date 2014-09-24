@@ -1,6 +1,6 @@
 {-# LANGUAGE OverloadedStrings #-}
 
-module Text.CorasickPark.Parser (replace) where
+module Text.CorasickPark.Parser (replace, transformWith) where
 
 import Text.Parsec.Prim hiding ((<|>))
 import Text.Parsec.Char
@@ -17,11 +17,8 @@ import Text.CorasickPark.Types (BoundaryType(..), Target(..))
 
 data MatchSegment = Match String String | Remaining String deriving (Show, Eq)
 
-replace :: String
-        -- ^ Input text string
-
-        -> Target -- ^ Describes what to match
-
+replace :: String -- ^ Input text string
+        -> Target -- ^ Target to match
         -> String -- ^ The string to replace
         -> String
         -- ^ The Text with substitutions applied
@@ -30,6 +27,17 @@ replace input target replacement =
   case parse (parser target) "(input)" input of
     Left _        -> input
     Right matches -> intercalate replacement matches
+
+transformWith :: String -- ^ Input text string
+              -> Target -- ^ Target to match
+              -> (String -> String)
+              -> String -- ^ String with matching terms downcased
+transformWith input target fn =
+    case parse (parser target) "(input)" input of
+    Left _        -> input
+    Right matches -> intercalate withFn matches
+
+    where withFn = fn (text target)
 
 parser :: Target -> Parsec String () [String]
 parser target = do
