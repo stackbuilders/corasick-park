@@ -23,6 +23,10 @@ spec = do
         replace "BEforeFOOafter" "foo" "bar"
           (NoBoundary, NoBoundary) False False `shouldBe` "BEforebarafter"
 
+      it "doesn't modify the case of the original string if boundaries don't match" $ do
+        replace "before fOo after" "foo" "bar"
+          (InputBoundary, InputBoundary) False False `shouldBe` "before fOo after"
+
     describe "with WordBoundary" $ do
       it "matches when the word boundary is on both sides of the word" $ do
         replace "before foo after" "foo" "bar"

@@ -13,9 +13,6 @@ import Control.Applicative ((<|>))
 
 import Text.CorasickPark.Types (BoundaryType(..))
 
--- | Text before and after the match is found.
-type TextEnds = (String, String)
-
 data Side = LeftSide | RightSide
 
 
@@ -43,7 +40,7 @@ replace :: String
 replace input target replacement boundaries isCaseSensitive isGlobal =
   case parsed of
     Left _        -> input
-    Right matches -> insertReplacements target replacement boundaries matches
+    Right matches -> insertReplacements replacement boundaries matches
 
   where parsed =
           parse (parser isCaseSensitive isGlobal target) "(input)" input
@@ -55,25 +52,41 @@ nearestCharFn :: Side -> String -> Char
 nearestCharFn RightSide = head
 nearestCharFn LeftSide  = last
 
+validBoundaries :: (BoundaryType, BoundaryType) -> (String, String) -> Bool
+validBoundaries (lboundary, rboundary) (lside, rside) =
+  validBoundary lboundary LeftSide lside &&
+  validBoundary rboundary RightSide rside
 
-spliceText :: String -- ^ Pattern matched
-           -> String -- ^ Text to substitute
+
+spliceText :: String -- ^ Replacement text
            -> (BoundaryType, BoundaryType) -- ^ Boundaries we need to verify
-           -> TextEnds -- ^ Text chunks broken by matches of pattern
+           -> (MatchSegment, MatchSegment) -- ^ Text chunks broken by matches of pattern
            -> String
 
-spliceText pattern replacement (lboundary, rboundary) (lside, rside) =
-  if sidesAreValid then
-    lside ++ replacement
+spliceText replacement bounds (Match lprefix lmatched, Match rprefix rmatched) =
+  if validBoundaries bounds (lprefix, rprefix) then
+    lprefix ++ replacement
 
   else
-    lside ++ pattern
+    lprefix ++ lmatched
 
-  where sidesAreValid =
-          validBoundary lboundary LeftSide lside &&
-          validBoundary rboundary RightSide rside
+spliceText replacement bounds (Match lprefix lmatched, Remaining str) =
+  if validBoundaries bounds (lprefix, str) then
+    lprefix ++ replacement
 
-parser :: Bool -> Bool -> String -> Parsec String () [String]
+  else
+    lprefix ++ lmatched
+
+spliceText replacement bounds (Remaining str1, Remaining str2) =
+  str1 ++ str2
+
+spliceText replacement bounds (Remaining str1, Match prefix matched) =
+  str1 ++ prefix
+
+
+data MatchSegment = Match String String | Remaining String deriving (Show, Eq)
+
+parser :: Bool -> Bool -> String -> Parsec String () [MatchSegment]
 parser isCaseSensitive isGlobal target = do
   sections <- if isGlobal then
                 many (try (matchingSection isCaseSensitive target))
@@ -85,21 +98,21 @@ parser isCaseSensitive isGlobal target = do
 
   toEnd <- manyTill anyChar eof
 
-  return $ sections ++ [toEnd]
+  return $ sections ++ [Remaining toEnd]
 
-insertReplacements :: String -- ^ Pattern matched
-                  -> String -- ^ Text to substitute
+insertReplacements :: String -- ^ Text to substitute
                   -> (BoundaryType, BoundaryType) -- ^ Boundaries to verify
-                  -> [String] -- ^ Text chunks broken by matches of pattern
+                  -> [MatchSegment] -- ^ Text chunks broken by matches of pattern
                   -> String
-insertReplacements _ _ _ [] = ""
-insertReplacements _ _ _ (x:[]) = x
-insertReplacements pattern replacement (lboundary, rboundary) (x:y:zs) =
+insertReplacements _ _ [] = ""
+insertReplacements _ _ (Match prefix matchedText:[]) = prefix ++ matchedText
+insertReplacements _ _ (Remaining str:[]) = str
+insertReplacements replacement (lboundary, rboundary) (x:y:zs) =
   splicedText ++
-  insertReplacements pattern replacement (lboundary, rboundary) (y : zs)
+  insertReplacements replacement (lboundary, rboundary) (y : zs)
 
   where splicedText =
-          spliceText pattern replacement (lboundary, rboundary) (x, y)
+          spliceText replacement (lboundary, rboundary) (x, y)
 
 
 -- | Figures out if the given string is a valid boundary for each match type.
@@ -120,21 +133,15 @@ validBoundary WordBoundary s t =
   || (not . C.isAlpha) (nearestCharFn s t)
 
 
-matchingSection :: Bool -> String -> Parsec String () String
-matchingSection isCaseSensitive target =
-  manyTill anyChar (try (caseString isCaseSensitive target))
+matchingSection :: Bool -> String -> Parsec String () MatchSegment
+matchingSection isCaseSensitive target = do
+  prefix <- manyTill anyChar (lookAhead (try casedText))
+  matchedTarget <- casedText
+  return $ Match prefix matchedTarget
 
+  where casedText = if isCaseSensitive
+                      then string target
+                      else caseInsensitiveString target
 
-caseString :: Bool -> String -> Parsec String () String
-caseString True target = string target
-caseString False target =
-  do { walk target; return target }
-
-  where
-    walk []     = return ()
-    walk (c:cs) = do { _ <- caseChar c <?> msg; walk cs }
-
-    caseChar c  | C.isAlpha c  = char (C.toLower c) <|> char (C.toUpper c)
-                | otherwise  = char c
-
-    msg         = show target
+caseInsensitiveChar c = char (C.toLower c) <|> char (C.toUpper c)
+caseInsensitiveString s = try (mapM caseInsensitiveChar s) <?> "\"" ++ s ++ "\""
