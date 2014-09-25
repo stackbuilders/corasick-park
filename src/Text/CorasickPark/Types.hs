@@ -36,6 +36,7 @@ data Transform = Replace String
                | Upcase
                | Downcase
                | Titleize
+               | ChompTrailing
                deriving (Show, Eq)
 
 data OperationSet = OperationSet { setName       :: !String
@@ -75,10 +76,11 @@ instance FromJSON Transform where
               Just (String repl) -> return $ Replace (T.unpack repl)
               _ -> mzero
 
-          String "upcase"     -> return Upcase
-          String "downcase"   -> return Downcase
-          String "titleize"   -> return Titleize
-          _                   -> mzero
+          String "upcase"         -> return Upcase
+          String "downcase"       -> return Downcase
+          String "titleize"       -> return Titleize
+          String "chomp trailing" -> return ChompTrailing
+          _                       -> mzero
 
   parseJSON _ = mzero
 

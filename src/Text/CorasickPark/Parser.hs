@@ -1,6 +1,11 @@
 {-# LANGUAGE OverloadedStrings #-}
 
-module Text.CorasickPark.Parser (replace, transformWith, titleize) where
+module Text.CorasickPark.Parser (
+    replace
+  , transformWith
+  , titleize
+  , chompTrailing
+  ) where
 
 import Text.Parsec.Prim hiding ((<|>))
 import Text.Parsec.Char
@@ -41,14 +46,24 @@ transformWith input target fn =
     where withFn = fn (text target)
 
 titleize :: String -- ^ Input text string
-            -> Target -- ^ Target to match
-            -> String -- ^ String with matching terms titleized
+         -> Target -- ^ Target to match
+         -> String -- ^ String with matching terms titleized
 titleize input target =
     case parse (parser target) "(input)" input of
     Left _        -> input
     Right matches -> intercalate titleized matches
 
     where titleized = I.titleize $ map Word $ words (text target)
+
+chompTrailing :: String -- ^ Input text string
+              -> Target -- ^ Target to match
+              -> String -- ^ String with text trailing matches removed
+chompTrailing input target =
+    case parse (parser target) "(input)" input of
+    Left _        -> input
+    Right matches ->
+      intercalate (text target) $ (map snd $ filter (odd . fst) $
+      zip [(1 :: Integer)..] matches) ++ [""]
 
 parser :: Target -> Parsec String () [String]
 parser target = do

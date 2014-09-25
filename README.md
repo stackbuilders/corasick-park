@@ -91,7 +91,9 @@ currently supported:
 * `replace` - Replaces the target with another target
 * `upcase` - Upper-cases matches of the target in input text
 * `downcase` - Lower-cases matches of the target in input text
-* `titleize` - Captalizes the first letter in each word of the input string
+* `titleize` - Captalizes the first letter in each word of the input
+  string
+* `chomp trailing` - Removes the text following each match of the string
 
 ## Author
 
