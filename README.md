@@ -27,14 +27,17 @@ transformations to apply for each string.
 `POST` the transformations that you wish to apply to `/operations`:
 
 ```json
-{ "name": "testbucket", "operations":
-  [ { "matchType" : { "isCaseSensitive": false,
-                      "isGlobal": true,
-                      "leftBoundaryType": "none",
-                      "rightBoundaryType": "none" },
-      "target": "foo",
-      "replacement": "bar" }
-  ]
+
+{"name": "downcasefoos", "operations":
+    [{"target":
+        { "text": "foo",
+          "isCaseSensitive": false,
+          "leftBoundaryType": "none",
+          "rightBoundaryType": "none",
+          "isGlobal": true
+        },
+      "transform":{"type": "replace", "replacement": "bar"}
+      }]
 }
 ```
 
@@ -59,7 +62,7 @@ and if the server returns a 404 (bucket not found) the client should
 post all of the transformations again, and then re-try the
 transformation endpoint.
 
-## Configuring patterns
+## Supported Target Patterns
 
 Corasick Park doesn't have full support for regular
 expressions. However you can customize the patterns that are matched
@@ -77,6 +80,18 @@ currently supported boundaries, which can be supplied to the
 * `input` - the input boundary must be on the specified side of the
     match. To specify that the match needs to be exact, just put an
     input boundary on both sides.
+
+## Supported String Transformations
+
+Corasick Park can apply a variety of transformations to input strings
+after efficiently finding the applicable transformations using the
+Aho-Corasick state machine. The following transformations are
+currently supported:
+
+* `replace` - Replaces the target with another target
+* `upcase` - Upper-cases matches of the target in input text
+* `downcase` - Lower-cases matches of the target in input text
+* `titleize` - Captalizes the first letter in each word of the input string
 
 ## Author
 

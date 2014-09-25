@@ -23,9 +23,7 @@ data MatchSegment = Match String String | Remaining String deriving (Show, Eq)
 replace :: String -- ^ Input text string
         -> Target -- ^ Target to match
         -> String -- ^ The string to replace
-        -> String
-        -- ^ The Text with substitutions applied
-
+        -> String -- ^ The Text with substitutions applied
 replace input target replacement =
   case parse (parser target) "(input)" input of
     Left _        -> input
