@@ -4,7 +4,7 @@ module Text.CorasickPark.Parser (
     replace
   , transformWith
   , titleize
-  , chompTrailing
+  , truncateTrailing
   ) where
 
 import Text.Parsec.Prim hiding ((<|>))
@@ -55,10 +55,10 @@ titleize input target =
 
     where titleized = I.titleize $ map Word $ words (text target)
 
-chompTrailing :: String -- ^ Input text string
+truncateTrailing :: String -- ^ Input text string
               -> Target -- ^ Target to match
               -> String -- ^ String with text trailing matches removed
-chompTrailing input target =
+truncateTrailing input target =
   case parse (parserWithSegments target) "(input)" input of
     Left _        -> input
     Right matches -> concatMap segmentToString $ zip [0..] matches

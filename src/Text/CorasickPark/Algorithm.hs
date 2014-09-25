@@ -18,7 +18,7 @@ import Text.CorasickPark.Types
 
 import Text.Inflections.Parse.Types (Word(..))
 
-import Text.CorasickPark.Parser (replace, transformWith, titleize, chompTrailing)
+import Text.CorasickPark.Parser (replace, transformWith, titleize, truncateTrailing)
 
 
 -- | Searches for all transformations in the given state machine
@@ -86,8 +86,8 @@ applyOperation
 
 applyOperation
   (Operation { target = tgt
-             , transform = ChompTrailing
-             }) input = chompTrailing input tgt
+             , transform = TruncateTrailing
+             }) input = truncateTrailing input tgt
 
 -- | Given a list of operations, update the state machines to find patterns.
 generateStateMachine :: [Operation] -> StateMachine Char Operation

@@ -93,7 +93,7 @@ currently supported:
 * `downcase` - Lower-cases matches of the target in input text
 * `titleize` - Captalizes the first letter in each word of the input
   string
-* `chomp trailing` - Removes the text following each match of the string
+* `truncate trailing` - Removes the text following each match of the string
 
 ## Author
 
