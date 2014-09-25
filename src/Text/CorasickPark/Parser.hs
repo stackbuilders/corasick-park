@@ -98,10 +98,6 @@ nonMatchString :: MatchSegment -> String
 nonMatchString (Match pre _) = pre
 nonMatchString (Remaining str)      = str
 
-caseInsensitiveChar c = char (C.toLower c) <|> char (C.toUpper c)
-
-caseInsensitiveString s = try (mapM caseInsensitiveChar s) <?> "\"" ++ s ++ "\""
-
 lhsParser :: Parsec String () String
           -> BoundaryType
           -> Parsec String () (String, String)
@@ -169,3 +165,8 @@ targetParser Target { text           = txt
   where casedText = if isCaseSensitive
                       then string txt
                       else caseInsensitiveString txt
+
+        caseInsensitiveChar c = char (C.toLower c) <|> char (C.toUpper c)
+
+        caseInsensitiveString s =
+          try (mapM caseInsensitiveChar s) <?> "\"" ++ s ++ "\""
