@@ -79,15 +79,21 @@ parser target = do
 
   return $ sections ++ [toEnd]
 
-
 caseInsensitiveChar c = char (C.toLower c) <|> char (C.toUpper c)
 
 caseInsensitiveString s = try (mapM caseInsensitiveChar s) <?> "\"" ++ s ++ "\""
 
-lhsParser :: Parsec String () String -> BoundaryType -> Parsec String () String
-lhsParser strParser NoBoundary = manyTill anyChar (try strParser)
+lhsParser :: Parsec String () String
+          -> BoundaryType
+          -> Parsec String () (String, String)
+lhsParser strParser NoBoundary = do
+  prefix <- manyTill anyChar (lookAhead (try strParser))
+  match <- strParser
+  return (prefix, match)
 
-lhsParser strParser InputBoundary = strParser >> return ""
+lhsParser strParser InputBoundary = do
+  match <- strParser
+  return ("", match)
 
 lhsParser strParser LineBoundary =
   (try (lhsParser strParser InputBoundary)) <|> lineBoundaryParser
@@ -97,9 +103,8 @@ lhsParser strParser LineBoundary =
             manyTill anyChar (lookAhead (try (char '\n' <|> char '\r') *> strParser))
 
           newlineChar <- (char '\n' <|> char '\r')
-          _ <- strParser
-          return $ toLineBoundary ++ [newlineChar]
-
+          match <- strParser
+          return (toLineBoundary ++ [newlineChar], match)
 
 lhsParser strParser WordBoundary =
   try (lhsParser strParser LineBoundary)
@@ -110,8 +115,8 @@ lhsParser strParser WordBoundary =
             manyTill anyChar (lookAhead (try (satisfy (not . C.isAlpha) *> strParser)))
 
           nonWordChar <- satisfy (not . C.isAlpha)
-          _ <- strParser
-          return $ toMatchBoundary ++ [nonWordChar]
+          match <- strParser
+          return (toMatchBoundary ++ [nonWordChar], match)
 
 rhsParser :: BoundaryType -> Parsec String () String
 rhsParser NoBoundary = manyTill anyChar eof
@@ -131,13 +136,13 @@ rhsParser WordBoundary =
     return $ [notWordChar] ++ rest
 
 targetParser :: Target -> Parsec String () String
-targetParser Target { text = txt
-                    , caseSensitive = isCaseSensitive
-                    , leftBoundary = lboundary
-                    , rightBoundary = rboundary
+targetParser Target { text           = txt
+                    , caseSensitive  = isCaseSensitive
+                    , leftBoundary   = lboundary
+                    , rightBoundary  = rboundary
                     } = do
 
-  prefix <- lhsParser casedText lboundary
+  (prefix, _) <- lhsParser casedText lboundary
   _ <- lookAhead (try (rhsParser rboundary))
 
   return prefix

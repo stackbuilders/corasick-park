@@ -95,7 +95,7 @@ spec = do
 
         replace "foo" tgt "bar" `shouldBe` "bar"
 
-      it "does not match when there isn't a line boundary before and after the terms" $ do
+      it "does not match when input boundaries don't match" $ do
         let tgt = Target { text          = "foo"
                             , caseSensitive = False
                             , leftBoundary  = InputBoundary
