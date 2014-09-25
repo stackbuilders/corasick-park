@@ -40,8 +40,8 @@ transformWith :: String -- ^ Input text string
               -> String -- ^ String with transformation function applied
 transformWith input target fn =
     case parse (parser target) "(input)" input of
-    Left _        -> input
-    Right matches -> intercalate withFn matches
+      Left _        -> input
+      Right matches -> intercalate withFn matches
 
     where withFn = fn (text target)
 
@@ -49,7 +49,7 @@ titleize :: String -- ^ Input text string
          -> Target -- ^ Target to match
          -> String -- ^ String with matching terms titleized
 titleize input target =
-    case parse (parser target) "(input)" input of
+  case parse (parser target) "(input)" input of
     Left _        -> input
     Right matches -> intercalate titleized matches
 
@@ -59,12 +59,21 @@ chompTrailing :: String -- ^ Input text string
               -> Target -- ^ Target to match
               -> String -- ^ String with text trailing matches removed
 chompTrailing input target =
-    case parse (parser target) "(input)" input of
+  case parse (parserWithSegments target) "(input)" input of
     Left _        -> input
-    Right matches ->
-      intercalate (text target) $ (map snd $ filter (odd . fst) $
-      zip [(1 :: Integer)..] matches) ++ [""]
+    Right matches -> concatMap segmentToString $ zip [0..] matches
 
+  where
+    segmentToString :: (Integer, MatchSegment) -> String
+    segmentToString (i, Match prefix match) =
+      if i == 0
+      then prefix ++ match
+      else match
+
+    segmentToString (i, Remaining str) =
+      if i == 0
+      then str
+      else ""
 
 parser :: Target -> Parsec String () [String]
 parser target = do

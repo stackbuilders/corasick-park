@@ -141,3 +141,40 @@ spec = do
                          , global        = False }
 
         replace "你好世界" tgt "Hello World" `shouldBe` "Hello World"
+
+    describe "chompTrailing" $ do
+      it "removes text trailing the match" $ do
+        let tgt = Target { text          = "foo"
+                         , caseSensitive = False
+                         , leftBoundary  = NoBoundary
+                         , rightBoundary = NoBoundary
+                         , global        = False }
+
+        chompTrailing "foo bar" tgt `shouldBe` "foo"
+
+      it "does not change capitalization of the match" $ do
+        let tgt = Target { text          = "fOo"
+                         , caseSensitive = False
+                         , leftBoundary  = NoBoundary
+                         , rightBoundary = NoBoundary
+                         , global        = False }
+
+        chompTrailing "foo bar" tgt `shouldBe` "foo"
+
+      it "removes text trailing multiple matches when target is global" $ do
+        let tgt = Target { text          = "foo"
+                         , caseSensitive = False
+                         , leftBoundary  = NoBoundary
+                         , rightBoundary = NoBoundary
+                         , global        = True }
+
+        chompTrailing "some foo bar foo baz foo buzz" tgt `shouldBe` "some foofoofoo"
+
+      it "removes all trailing text when multiple matches are found but the target is not global" $ do
+        let tgt = Target { text          = "foo"
+                         , caseSensitive = False
+                         , leftBoundary  = NoBoundary
+                         , rightBoundary = NoBoundary
+                         , global        = False }
+
+        chompTrailing "some foo bar foo baz foo buzz" tgt `shouldBe` "some foo"
