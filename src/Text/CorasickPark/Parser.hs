@@ -65,8 +65,14 @@ chompTrailing input target =
       intercalate (text target) $ (map snd $ filter (odd . fst) $
       zip [(1 :: Integer)..] matches) ++ [""]
 
+
 parser :: Target -> Parsec String () [String]
 parser target = do
+  segments <- parserWithSegments target
+  return $ map nonMatchString segments
+
+parserWithSegments :: Target -> Parsec String () [MatchSegment]
+parserWithSegments target = do
   sections <- if (global target) then
                 many (try (targetParser target))
 
@@ -77,7 +83,11 @@ parser target = do
 
   toEnd <- manyTill anyChar eof
 
-  return $ sections ++ [toEnd]
+  return $ sections ++ [Remaining toEnd]
+
+nonMatchString :: MatchSegment -> String
+nonMatchString (Match pre _) = pre
+nonMatchString (Remaining str)      = str
 
 caseInsensitiveChar c = char (C.toLower c) <|> char (C.toUpper c)
 
@@ -135,17 +145,17 @@ rhsParser WordBoundary =
     rest <- manyTill anyChar eof
     return $ [notWordChar] ++ rest
 
-targetParser :: Target -> Parsec String () String
+targetParser :: Target -> Parsec String () MatchSegment
 targetParser Target { text           = txt
                     , caseSensitive  = isCaseSensitive
                     , leftBoundary   = lboundary
                     , rightBoundary  = rboundary
                     } = do
 
-  (prefix, _) <- lhsParser casedText lboundary
+  (prefix, match) <- lhsParser casedText lboundary
   _ <- lookAhead (try (rhsParser rboundary))
 
-  return prefix
+  return $ Match prefix match
 
   where casedText = if isCaseSensitive
                       then string txt
