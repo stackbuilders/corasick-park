@@ -178,3 +178,23 @@ spec = do
                          , global        = False }
 
         chompTrailing "some foo bar foo baz foo buzz" tgt `shouldBe` "some foo"
+
+    describe "titleize" $ do
+      it "titleizes the string" $ do
+        let tgt = Target { text          = "green tree"
+                         , caseSensitive = False
+                         , leftBoundary  = NoBoundary
+                         , rightBoundary = NoBoundary
+                         , global        = False }
+
+        titleize "green tree" tgt `shouldBe` "Green Tree"
+
+      it "titleizes many occurrences of the string when global is enabled" $ do
+        let tgt = Target { text          = "green tree"
+                         , caseSensitive = False
+                         , leftBoundary  = NoBoundary
+                         , rightBoundary = NoBoundary
+                         , global        = True }
+
+        titleize "there is a green tree the green tree is very green" tgt
+          `shouldBe` "there is a Green Tree the Green Tree is very green"
