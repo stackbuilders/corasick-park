@@ -69,7 +69,7 @@ instance FromJSON Target where
 instance FromJSON Transform where
   parseJSON (Object v) = do
     case HM.lookup (T.pack "type") v of
-      Nothing -> undefined
+      Nothing -> mzero
       Just s -> do
         case s of
           String "replace" ->
