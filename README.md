@@ -95,6 +95,16 @@ currently supported:
   string
 * `truncate trailing` - Removes the text following each match of the string
 
+## Configuring the maximum number of buckets
+
+Since all of the state machines compiled by Corasick Park are held in memory,
+it uses an LRU algorithm to evict older values from the cache. By default,
+1,000 'buckets' are kept in memory before evicting the one that has not had an
+access in the greatest amount of time. You can configure the number of buckets
+to be held in memory with the MAX_BUCKETS environment variable, which accepts
+an integer, or the string "unlimited" if you do not wish to automatically evict
+buckets from memory.
+
 ## Author
 
 Justin Leitgeb, Stack Builders Inc.

@@ -14,6 +14,7 @@ import Snap (Handler)
 import qualified Data.Map.Strict as Map
 import qualified Data.HashMap.Strict as HM
 import qualified Data.Text as T
+import qualified Data.Cache.LRU as L
 
 data BoundaryType = NoBoundary
                   | WordBoundary
@@ -76,11 +77,11 @@ instance FromJSON Transform where
               Just (String repl) -> return $ Replace (T.unpack repl)
               _ -> mzero
 
-          String "upcase"         -> return Upcase
-          String "downcase"       -> return Downcase
-          String "titleize"       -> return Titleize
+          String "upcase"            -> return Upcase
+          String "downcase"          -> return Downcase
+          String "titleize"          -> return Titleize
           String "truncate trailing" -> return TruncateTrailing
-          _                       -> mzero
+          _                          -> mzero
 
   parseJSON _ = mzero
 
@@ -95,8 +96,8 @@ instance FromJSON BoundaryType where
 
 -- | Map of bucket names pointing to a tuple of case sensitive and non-case
 -- sensitive state machines, respectively
-type OperationMachines = Map.Map String ( StateMachine Char Operation
-                                        , StateMachine Char Operation )
+type OperationMachines = L.LRU String ( StateMachine Char Operation
+                                      , StateMachine Char Operation )
 
 
 data App = App

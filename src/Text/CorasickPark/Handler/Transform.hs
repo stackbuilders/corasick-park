@@ -6,7 +6,7 @@ import Text.CorasickPark.Types
 
 import Snap (Handler, Method(..), method, gets)
 
-import Control.Concurrent (readMVar)
+import Control.Concurrent (takeMVar, putMVar)
 import Control.Applicative ((<$>), (<*>))
 import Control.Monad (mzero)
 import Control.Monad.Trans (liftIO)
@@ -15,8 +15,7 @@ import Snap.Core (modifyResponse, setResponseStatus)
 import Snap.Extras.JSON (getJSON, writeJSON)
 import Data.Aeson
 
-import qualified Data.Map.Strict as Map
-
+import qualified Data.Cache.LRU as L
 
 import Text.CorasickPark.Handler.Utils (errorMessage, successMessage)
 import Text.CorasickPark.Algorithm (findAndApplyTransformations)
@@ -52,14 +51,16 @@ transformHandler = method POST transformer
 
         Right transformReq -> do
           opmapvar <- gets _operations
-          ops      <- liftIO $ readMVar opmapvar
+          ops      <- liftIO $ takeMVar opmapvar
 
-          case Map.lookup (operationGroup transformReq) ops of
-            Nothing -> do
+          case L.lookup (operationGroup transformReq) ops of
+            (newLRU, Nothing) -> do
+              liftIO $ putMVar opmapvar newLRU
               modifyResponse $ setResponseStatus 404 "Not found"
               writeJSON $ errorMessage "Requested operation bucket not found."
 
-            Just machines -> do
+            (newLRU, Just machines) -> do
+              liftIO $ putMVar opmapvar newLRU
               let newString = findAndApplyTransformations (input transformReq)
                               machines
 

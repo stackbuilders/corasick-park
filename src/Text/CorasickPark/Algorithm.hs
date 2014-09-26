@@ -12,13 +12,17 @@ import Data.Char (toLower, toUpper)
 import Data.List (partition)
 
 import qualified Data.Map.Strict as Map
+import qualified Data.Cache.LRU as L
 
 import Text.AhoCorasick
 import Text.CorasickPark.Types
 
 import Text.Inflections.Parse.Types (Word(..))
 
-import Text.CorasickPark.Parser (replace, transformWith, titleize, truncateTrailing)
+import Text.CorasickPark.Parser ( replace
+                                , transformWith
+                                , titleize
+                                , truncateTrailing)
 
 
 -- | Searches for all transformations in the given state machine
@@ -50,7 +54,7 @@ updateStateMachines opmapvar
 
 
   existingOps <- takeMVar opmapvar
-  _ <- putMVar opmapvar $ Map.insert sn
+  _ <- putMVar opmapvar $ L.insert sn
        ( generateStateMachine caseSensitiveOps
        , generateStateMachine nonCaseSensitiveOps )
        existingOps
