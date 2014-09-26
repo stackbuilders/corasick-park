@@ -22,6 +22,25 @@ Corasick Park allows you to precompile patterns in groups by a
 'bucket' name so that you can easily choose which set of
 transformations to apply for each string.
 
+## Downloading and Running
+
+In order to install this project, you should first install GHC
+(Haskell compiler) and cabal (Haskell dependency management). Once you
+have these dependencies installed, clone this project using git, `cd`
+to the folder where this project lives, and execute the following:
+
+```bash
+cabal install --only-dependencies --enable-tests
+cabal test
+```
+
+If the test command runs without error, you have correctly installed
+the application.
+
+In order to start the server, execute `cabal run`. The server will
+start on port 8000, and you can test it by sending JSON requests
+similar to the following.
+
 ## Interface
 
 `POST` the transformations that you wish to apply to `/operations`:
