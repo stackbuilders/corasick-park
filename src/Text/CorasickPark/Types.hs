@@ -11,7 +11,6 @@ import Text.AhoCorasick (StateMachine)
 import Control.Lens.TH (makeLenses)
 import Snap (Handler)
 
-import qualified Data.Map.Strict as Map
 import qualified Data.HashMap.Strict as HM
 import qualified Data.Text as T
 import qualified Data.Cache.LRU as L
