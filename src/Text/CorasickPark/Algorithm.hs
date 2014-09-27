@@ -11,25 +11,24 @@ import Control.Concurrent (MVar, takeMVar, putMVar)
 import Data.Char (toLower, toUpper)
 import Data.List (partition)
 
-import qualified Data.Map.Strict as Map
 import qualified Data.Cache.LRU as L
 
 import Text.AhoCorasick
-import Text.CorasickPark.Types
 
-import Text.Inflections.Parse.Types (Word(..))
+import Text.CorasickPark.Types
 
 import Text.CorasickPark.Parser ( replace
                                 , transformWith
                                 , titleize
-                                , truncateTrailing)
+                                , truncateTrailing
+                                )
 
 
 -- | Searches for all transformations in the given state machine
 -- selectively applies the ones that match based on boundaries.
 findAndApplyTransformations :: String
                             -> ( StateMachine Char Operation
-                               , StateMachine Char Operation)
+                               , StateMachine Char Operation )
                             -> String
 findAndApplyTransformations s stateMachines =
   let allOps = findOperations stateMachines s in
