@@ -31,19 +31,18 @@ findAndApplyTransformations :: String
                                , StateMachine Char Operation )
                             -> String
 findAndApplyTransformations s stateMachines =
-  let allOps = findOperations stateMachines s in
-    foldr applyOperation s $ uncurry (++) allOps
+  foldr applyOperation s $ findOperations stateMachines s
 
 
 findOperations :: (StateMachine Char Operation, StateMachine Char Operation)
                -> String
-               -> ([Operation], [Operation])
+               -> [Operation]
 findOperations (caseSensitiveSMs, nonCaseSensitiveSMs) toTarget =
   let (caseSensitiveOps, nonCaseSensitiveOps) =
         ( findAll caseSensitiveSMs toTarget
         , findAll nonCaseSensitiveSMs (map toLower toTarget)) in
 
-      (map pVal caseSensitiveOps, map pVal nonCaseSensitiveOps)
+      uncurry (++) (map pVal caseSensitiveOps, map pVal nonCaseSensitiveOps)
 
 updateStateMachines :: MVar OperationMachines -> OperationSet -> IO ()
 updateStateMachines opmapvar
