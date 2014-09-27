@@ -103,6 +103,6 @@ opToState :: Operation -> (String, Operation)
 opToState op =
   (applyCase ((text . target) op), op)
 
-  where applyCase str = if ((caseSensitive . target) op)
+  where applyCase str = if (caseSensitive . target) op
                           then str
                           else map toLower str

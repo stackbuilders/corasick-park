@@ -82,7 +82,7 @@ parser target = do
 
 parserWithSegments :: Target -> Parsec String () [MatchSegment]
 parserWithSegments target = do
-  sections <- if (global target) then
+  sections <- if global target then
                 many (try (targetParser target))
 
               else
@@ -111,13 +111,13 @@ lhsParser strParser InputBoundary = do
   return ("", match)
 
 lhsParser strParser LineBoundary =
-  (try (lhsParser strParser InputBoundary)) <|> lineBoundaryParser
+  try (lhsParser strParser InputBoundary) <|> lineBoundaryParser
 
   where lineBoundaryParser = do
           toLineBoundary <-
             manyTill anyChar (lookAhead (try (char '\n' <|> char '\r') *> strParser))
 
-          newlineChar <- (char '\n' <|> char '\r')
+          newlineChar <- char '\n' <|> char '\r'
           match <- strParser
           return (toLineBoundary ++ [newlineChar], match)
 
@@ -138,17 +138,17 @@ rhsParser NoBoundary = manyTill anyChar eof
 rhsParser InputBoundary = eof >> return ""
 
 rhsParser LineBoundary =
-  (try (rhsParser InputBoundary)) <|> do
-    eolChar <- (char '\n' <|> char '\r')
+  try (rhsParser InputBoundary) <|> do
+    eolChar <- char '\n' <|> char '\r'
     rest <- manyTill anyChar eof
-    return $ [eolChar] ++ rest
+    return $ eolChar : rest
 
 rhsParser WordBoundary =
   try (rhsParser LineBoundary)
   <|> do
     notWordChar <- satisfy (not . C.isAlpha)
     rest <- manyTill anyChar eof
-    return $ [notWordChar] ++ rest
+    return $ notWordChar : rest
 
 targetParser :: Target -> Parsec String () MatchSegment
 targetParser Target { text           = txt

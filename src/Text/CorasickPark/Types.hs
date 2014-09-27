@@ -66,10 +66,10 @@ instance FromJSON Target where
   parseJSON _          = mzero
 
 instance FromJSON Transform where
-  parseJSON (Object v) = do
+  parseJSON (Object v) =
     case HM.lookup (T.pack "type") v of
       Nothing -> mzero
-      Just s -> do
+      Just s ->
         case s of
           String "replace" ->
             case HM.lookup (T.pack "replacement") v of

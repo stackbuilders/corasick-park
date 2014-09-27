@@ -24,7 +24,7 @@ import Text.Parsec ()
 import Control.Applicative ((<|>), (<*))
 
 maxBucketParser :: Parsec String () (Maybe Integer)
-maxBucketParser = do
+maxBucketParser =
   (string "unlimited" >> return Nothing) <|> do
     digitStr <- many1 digit <* eof
     return $ Just (read digitStr :: Integer)
@@ -36,7 +36,7 @@ main = do
   let bucketLimit =
         case maxBuckets of
           Nothing -> Just 1000
-          Just bs -> do
+          Just bs ->
             case parse maxBucketParser "MAX_BUCKETS Environment Variable" bs of
               Left _ -> Just 1000
               Right numBuckets -> numBuckets
