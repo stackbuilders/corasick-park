@@ -19,17 +19,22 @@ import Text.CorasickPark.Types ( BoundaryType(..)
                                , Target(..)
                                , MatchSegment(..) )
 
+-- | Breaks up the given string into a list of strings based on the given
+-- Target. The instances of the pattern that are found are *not* included
+-- in the resultant list.
 parseToStrings :: String -> Target -> [String]
 parseToStrings input target =
   case parse (parser target) "(input)" input of
     Left _ -> [input]
     Right matches -> matches
 
+-- | Breaks up the given string into a list of MatchSegments.
 parseToMatchSegments :: String -> Target -> [MatchSegment]
 parseToMatchSegments input target =
   case parse (parserWithSegments target) "(input)" input of
     Left _ -> [Remaining input]
     Right matches -> matches
+
 
 parser :: Target -> Parsec String () [String]
 parser target = do
