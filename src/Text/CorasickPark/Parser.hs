@@ -1,79 +1,24 @@
 {-# LANGUAGE OverloadedStrings #-}
 
-module Text.CorasickPark.Parser (
-    replace
-  , transformWith
-  , titleize
-  , truncateTrailing
-  ) where
+module Text.CorasickPark.Parser
+       ( parser
+       , parserWithSegments
+       ) where
 
 import Text.Parsec.Prim hiding ((<|>))
 import Text.Parsec.Char
 import Text.Parsec.Combinator
 import Text.Parsec ()
 
-import Data.List (intercalate)
-
 import qualified Data.Char as C
 
-import qualified Text.Inflections as I
-import Text.Inflections.Parse.Types (Word(..))
 
-import Control.Applicative ((<|>), (<*), (*>), (<*>))
+import Control.Applicative ((<|>), (*>))
 
-import Text.CorasickPark.Types (BoundaryType(..), Target(..))
+import Text.CorasickPark.Types ( BoundaryType(..)
+                               , Target(..)
+                               , MatchSegment(..) )
 
-data MatchSegment = Match String String | Remaining String deriving (Show, Eq)
-
-replace :: String -- ^ Input text string
-        -> Target -- ^ Target to match
-        -> String -- ^ The string to replace
-        -> String -- ^ The Text with substitutions applied
-replace input target replacement =
-  case parse (parser target) "(input)" input of
-    Left _        -> input
-    Right matches -> intercalate replacement matches
-
-transformWith :: String -- ^ Input text string
-              -> Target -- ^ Target to match
-              -> (String -> String)
-              -> String -- ^ String with transformation function applied
-transformWith input target fn =
-    case parse (parser target) "(input)" input of
-      Left _        -> input
-      Right matches -> intercalate withFn matches
-
-    where withFn = fn (text target)
-
-titleize :: String -- ^ Input text string
-         -> Target -- ^ Target to match
-         -> String -- ^ String with matching terms titleized
-titleize input target =
-  case parse (parser target) "(input)" input of
-    Left _        -> input
-    Right matches -> intercalate titleized matches
-
-    where titleized = I.titleize $ map Word $ words (text target)
-
-truncateTrailing :: String -- ^ Input text string
-              -> Target -- ^ Target to match
-              -> String -- ^ String with text trailing matches removed
-truncateTrailing input target =
-  case parse (parserWithSegments target) "(input)" input of
-    Left _        -> input
-    Right matches -> concatMap segmentToString $ zip [0..] matches
-
-  where
-    segmentToString :: (Integer, MatchSegment) -> String
-    segmentToString (i, Match prefix match) =
-      if i == 0
-      then prefix ++ match
-      else match
-
-    segmentToString (i, Remaining str) =
-      if i == 0
-      then str
-      else ""
 
 parser :: Target -> Parsec String () [String]
 parser target = do
@@ -95,8 +40,8 @@ parserWithSegments target = do
   return $ sections ++ [Remaining toEnd]
 
 nonMatchString :: MatchSegment -> String
-nonMatchString (Match pre _) = pre
-nonMatchString (Remaining str)      = str
+nonMatchString (Match pre _)   = pre
+nonMatchString (Remaining str) = str
 
 lhsParser :: Parsec String () String
           -> BoundaryType
@@ -115,7 +60,8 @@ lhsParser strParser LineBoundary =
 
   where lineBoundaryParser = do
           toLineBoundary <-
-            manyTill anyChar (lookAhead (try (char '\n' <|> char '\r') *> strParser))
+            manyTill anyChar (lookAhead (try (char '\n' <|> char '\r') *>
+                                         strParser))
 
           newlineChar <- char '\n' <|> char '\r'
           match <- strParser
@@ -127,7 +73,8 @@ lhsParser strParser WordBoundary =
 
   where wordBoundaryParser = do
           toMatchBoundary <-
-            manyTill anyChar (lookAhead (try (satisfy (not . C.isAlpha) *> strParser)))
+            manyTill anyChar (lookAhead (try (satisfy (not . C.isAlpha) *>
+                                              strParser)))
 
           nonWordChar <- satisfy (not . C.isAlpha)
           match <- strParser

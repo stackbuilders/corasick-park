@@ -3,13 +3,25 @@
 module Text.CorasickPark.Algorithm
        ( OperationSet(..)
        , findAndApplyTransformations
+
+       , replace
+       , transformWith
+       , titleize
+       , truncateTrailing
+
        , updateStateMachines
        ) where
 
 import Control.Concurrent (MVar, takeMVar, putMVar)
+import Data.List (intercalate)
+
+import qualified Text.Inflections as I
+import Text.Inflections.Parse.Types (Word(..))
 
 import Data.Char (toLower, toUpper)
 import Data.List (partition)
+
+import Text.Parsec (parse)
 
 import qualified Data.Cache.LRU as L
 
@@ -17,10 +29,8 @@ import Text.AhoCorasick
 
 import Text.CorasickPark.Types
 
-import Text.CorasickPark.Parser ( replace
-                                , transformWith
-                                , titleize
-                                , truncateTrailing
+import Text.CorasickPark.Parser ( parser
+                                , parserWithSegments
                                 )
 
 
@@ -32,6 +42,56 @@ findAndApplyTransformations :: String
                             -> String
 findAndApplyTransformations s stateMachines =
   foldr applyOperation s $ findOperations stateMachines s
+
+replace :: String -- ^ Input text string
+        -> Target -- ^ Target to match
+        -> String -- ^ The string to replace
+        -> String -- ^ The Text with substitutions applied
+replace input target replacement =
+  case parse (parser target) "(input)" input of
+    Left _        -> input
+    Right matches -> intercalate replacement matches
+
+transformWith :: String -- ^ Input text string
+              -> Target -- ^ Target to match
+              -> (String -> String)
+              -> String -- ^ String with transformation function applied
+transformWith input target fn =
+    case parse (parser target) "(input)" input of
+      Left _        -> input
+      Right matches -> intercalate withFn matches
+
+    where withFn = fn (text target)
+
+titleize :: String -- ^ Input text string
+         -> Target -- ^ Target to match
+         -> String -- ^ String with matching terms titleized
+titleize input target =
+  case parse (parser target) "(input)" input of
+    Left _        -> input
+    Right matches -> intercalate titleized matches
+
+    where titleized = I.titleize $ map Word $ words (text target)
+
+truncateTrailing :: String -- ^ Input text string
+              -> Target -- ^ Target to match
+              -> String -- ^ String with text trailing matches removed
+truncateTrailing input target =
+  case parse (parserWithSegments target) "(input)" input of
+    Left _        -> input
+    Right matches -> concatMap segmentToString $ zip [0..] matches
+
+  where
+    segmentToString :: (Integer, MatchSegment) -> String
+    segmentToString (i, Match prefix match) =
+      if i == 0
+      then prefix ++ match
+      else match
+
+    segmentToString (i, Remaining str) =
+      if i == 0
+      then str
+      else ""
 
 
 findOperations :: (StateMachine Char Operation, StateMachine Char Operation)

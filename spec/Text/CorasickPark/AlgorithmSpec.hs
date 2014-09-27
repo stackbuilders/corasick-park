@@ -1,11 +1,11 @@
 {-# LANGUAGE OverloadedStrings #-}
 
-module Text.CorasickPark.ParserSpec (spec) where
+module Text.CorasickPark.AlgorithmSpec (spec) where
 
 import Test.Hspec
 
 import Text.CorasickPark.Types
-import Text.CorasickPark.Parser
+import Text.CorasickPark.Algorithm
 
 spec :: Spec
 spec = do

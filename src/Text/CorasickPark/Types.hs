@@ -44,6 +44,8 @@ data OperationSet = OperationSet { setName       :: !String
                                  } deriving (Show, Eq)
 
 
+data MatchSegment = Match String String | Remaining String deriving (Show, Eq)
+
 instance FromJSON OperationSet where
   parseJSON (Object v) = OperationSet <$>
                          v .: "name" <*>
