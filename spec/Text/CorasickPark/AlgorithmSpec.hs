@@ -9,7 +9,7 @@ import Text.CorasickPark.Algorithm
 
 spec :: Spec
 spec = do
-  describe "downcase" $ do
+  describe "downcase" $
     it "changes the target to lower-case" $ do
       let op = Operation { target = Target { text          = "FOO"
                                            , caseSensitive = True
@@ -20,7 +20,7 @@ spec = do
 
       applyOperation op "FOO" `shouldBe` "foo"
 
-  describe "upcase" $ do
+  describe "upcase" $
     it "changes the target to upper-case" $ do
       let op = Operation { target = Target { text          = "foo"
                                            , caseSensitive = True
