@@ -93,7 +93,8 @@ updateStateMachines :: MVar OperationMachines -> OperationSet -> IO ()
 updateStateMachines opmapvar
   (OperationSet { setName = sn, allOperations = ao }) = do
 
-  let (caseSensitiveOps, nonCaseSensitiveOps) = partition isCaseSensitive ao
+  let (caseSensitiveOps, nonCaseSensitiveOps) =
+        partition (caseSensitive . target) ao
 
 
   existingOps <- takeMVar opmapvar
@@ -103,11 +104,6 @@ updateStateMachines opmapvar
        existingOps
 
   return ()
-
-  where isCaseSensitive (Operation { target = Target {
-                                        caseSensitive = True } }) = True
-        isCaseSensitive (Operation { target = Target {
-                                        caseSensitive = False } }) = False
 
 
 applyOperation :: Operation -> String -> String
