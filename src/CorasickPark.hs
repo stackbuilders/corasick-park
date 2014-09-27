@@ -7,8 +7,6 @@ import Control.Concurrent (newMVar)
 import Control.Monad.Trans (liftIO)
 import System.Environment (lookupEnv)
 
-import Text.Read (readMaybe)
-
 import Snap (Handler, SnapletInit, serveSnaplet, defaultConfig, makeSnaplet,
              addRoutes)
 
