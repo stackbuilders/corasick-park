@@ -1,8 +1,8 @@
 {-# LANGUAGE OverloadedStrings #-}
 
 module Text.CorasickPark.Parser
-       ( parser
-       , parserWithSegments
+       ( parseToStrings
+       , parseToMatchSegments
        ) where
 
 import Text.Parsec.Prim hiding ((<|>))
@@ -19,6 +19,17 @@ import Text.CorasickPark.Types ( BoundaryType(..)
                                , Target(..)
                                , MatchSegment(..) )
 
+parseToStrings :: String -> Target -> [String]
+parseToStrings string target =
+  case parse (parser target) "(input)" string of
+    Left _ -> [string]
+    Right matches -> matches
+
+parseToMatchSegments :: String -> Target -> [MatchSegment]
+parseToMatchSegments string target =
+  case parse (parserWithSegments target) "(input)" string of
+    Left _ -> [Remaining string]
+    Right matches -> matches
 
 parser :: Target -> Parsec String () [String]
 parser target = do
