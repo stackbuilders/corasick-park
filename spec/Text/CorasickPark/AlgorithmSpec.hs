@@ -12,189 +12,210 @@ spec = do
   describe "replace" $ do
     describe "with NoBoundary on RHS and LHS" $ do
       it "matches when the string matches" $ do
-        let tgt = Target { text          = "foo"
-                         , caseSensitive = False
-                         , leftBoundary  = NoBoundary
-                         , rightBoundary = NoBoundary
-                         , global        = False }
+        let op = Operation { target = Target { text          = "foo"
+                                             , caseSensitive = False
+                                             , leftBoundary  = NoBoundary
+                                             , rightBoundary = NoBoundary
+                                             , global        = False }
+                           , transform = Replace "bar" }
 
-        replace "beforefooafter" tgt "bar" `shouldBe` "beforebarafter"
+
+        applyOperation op "beforefooafter" `shouldBe` "beforebarafter"
 
       it "does not replace when pattern does not match" $ do
-        let tgt = Target { text          = "foo"
-                      , caseSensitive = False
-                      , leftBoundary  = NoBoundary
-                      , rightBoundary = NoBoundary
-                      , global        = False }
+        let op = Operation { target = Target { text          = "foo"
+                                             , caseSensitive = False
+                                             , leftBoundary  = NoBoundary
+                                             , rightBoundary = NoBoundary
+                                             , global        = False }
+                           , transform = Replace "bar" }
 
-        replace "beforeNOTHINGafter" tgt "bar" `shouldBe` "beforeNOTHINGafter"
+        applyOperation op  "beforeNOTHINGafter" `shouldBe` "beforeNOTHINGafter"
 
       it "matches strings, case insensitive" $ do
-        let tgt = Target { text          = "foo"
-                         , caseSensitive = False
-                         , leftBoundary  = NoBoundary
-                         , rightBoundary = NoBoundary
-                         , global        = False }
+        let op = Operation { target = Target { text          = "foo"
+                                             , caseSensitive = False
+                                             , leftBoundary  = NoBoundary
+                                             , rightBoundary = NoBoundary
+                                             , global        = False }
+                           , transform = Replace "bar" }
 
-        replace "BEforeFOOafter" tgt "bar" `shouldBe` "BEforebarafter"
+        applyOperation op "BEforeFOOafter" `shouldBe` "BEforebarafter"
 
       it "doesn't modify the case of the original string if boundaries don't match" $ do
-        let tgt = Target { text          = "foo"
-                         , caseSensitive = False
-                         , leftBoundary  = InputBoundary
-                         , rightBoundary = InputBoundary
-                         , global        = False }
+        let op = Operation { target = Target { text          = "foo"
+                                             , caseSensitive = False
+                                             , leftBoundary  = InputBoundary
+                                             , rightBoundary = InputBoundary
+                                             , global        = False }
+                           , transform = Replace "bar" }
 
-        replace "before fOo after" tgt "bar" `shouldBe` "before fOo after"
+        applyOperation op "before fOo after" `shouldBe` "before fOo after"
 
     describe "with WordBoundary" $ do
       it "matches when the word boundary is on both sides of the word" $ do
-        let tgt = Target { text          = "foo"
-                         , caseSensitive = False
-                         , leftBoundary  = WordBoundary
-                         , rightBoundary = WordBoundary
-                         , global        = False }
+        let op = Operation { target = Target  { text          = "foo"
+                                              , caseSensitive = False
+                                              , leftBoundary  = WordBoundary
+                                              , rightBoundary = WordBoundary
+                                              , global        = False }
+                           , transform = Replace "bar" }
 
-        replace "before foo after" tgt "bar" `shouldBe` "before bar after"
+        applyOperation op "before foo after" `shouldBe` "before bar after"
 
       it "does not match when there isn't a word boundary" $ do
-        let tgt = Target { text          = "foo"
-                         , caseSensitive = False
-                         , leftBoundary  = WordBoundary
-                         , rightBoundary = WordBoundary
-                         , global        = False }
+        let op = Operation { target = Target { text          = "foo"
+                                             , caseSensitive = False
+                                             , leftBoundary  = WordBoundary
+                                             , rightBoundary = WordBoundary
+                                             , global        = False }
+                           , transform = Replace "bar" }
 
-        replace "beforefooafter" tgt "bar" `shouldBe` "beforefooafter"
+        applyOperation op "beforefooafter" `shouldBe` "beforefooafter"
 
     describe "with LineBoundary" $ do
       it "matches strings" $ do
-        let tgt = Target { text          = "foo"
-                            , caseSensitive = False
-                            , leftBoundary  = LineBoundary
-                            , rightBoundary = LineBoundary
-                            , global        = False }
+        let op = Operation { target = Target { text          = "foo"
+                                             , caseSensitive = False
+                                             , leftBoundary  = LineBoundary
+                                             , rightBoundary = LineBoundary
+                                             , global        = False }
+                           , transform = Replace "bar" }
 
-        replace "before\nfoo\nafter" tgt "bar" `shouldBe` "before\nbar\nafter"
+        applyOperation op "before\nfoo\nafter" `shouldBe` "before\nbar\nafter"
 
       it "does not match when there isn't a line boundary before and after the terms" $ do
-        let tgt = Target { text          = "foo"
-                            , caseSensitive = False
-                            , leftBoundary  = LineBoundary
-                            , rightBoundary = LineBoundary
-                            , global        = False }
+        let op = Operation { target = Target { text          = "foo"
+                                             , caseSensitive = False
+                                             , leftBoundary  = LineBoundary
+                                             , rightBoundary = LineBoundary
+                                             , global        = False }
+                           , transform = Replace "bar" }
 
-        replace "beforefooafter" tgt "bar" `shouldBe` "beforefooafter"
+        applyOperation op "beforefooafter" `shouldBe` "beforefooafter"
 
     describe "with InputBoundary" $ do
       it "matches strings" $ do
-        let tgt = Target { text          = "foo"
-                         , caseSensitive = False
-                         , leftBoundary  = InputBoundary
-                         , rightBoundary = InputBoundary
-                         , global        = False }
+        let op = Operation { target = Target { text          = "foo"
+                                             , caseSensitive = False
+                                             , leftBoundary  = InputBoundary
+                                             , rightBoundary = InputBoundary
+                                             , global        = False }
+                           , transform = Replace "bar" }
 
-        replace "foo" tgt "bar" `shouldBe` "bar"
+        applyOperation op "foo" `shouldBe` "bar"
 
       it "does not match when input boundaries don't match" $ do
-        let tgt = Target { text          = "foo"
-                            , caseSensitive = False
-                            , leftBoundary  = InputBoundary
-                            , rightBoundary = InputBoundary
-                            , global        = False }
+        let op = Operation { target = Target { text          = "foo"
+                                             , caseSensitive = False
+                                             , leftBoundary  = InputBoundary
+                                             , rightBoundary = InputBoundary
+                                             , global        = False }
+                           , transform = Replace "bar" }
 
-        replace "before\nfoo\nafter" tgt "bar" `shouldBe` "before\nfoo\nafter"
+        applyOperation op "before\nfoo\nafter" `shouldBe` "before\nfoo\nafter"
 
     describe "global replacement" $ do
       it "replaces all matches when True" $ do
-        let tgt = Target { text          = "foo"
-                         , caseSensitive = False
-                         , leftBoundary  = NoBoundary
-                         , rightBoundary = NoBoundary
-                         , global        = True }
+        let op = Operation { target = Target { text          = "foo"
+                                             , caseSensitive = False
+                                             , leftBoundary  = NoBoundary
+                                             , rightBoundary = NoBoundary
+                                             , global        = True }
+                           , transform = Replace "bar" }
 
-        replace "foo foo foo" tgt "bar" `shouldBe` "bar bar bar"
+        applyOperation op "foo foo foo" `shouldBe` "bar bar bar"
 
       it "replaces the first match when False" $ do
-        let tgt = Target { text          = "foo"
-                         , caseSensitive = False
-                         , leftBoundary  = NoBoundary
-                         , rightBoundary = NoBoundary
-                         , global        = False }
+        let op = Operation { target = Target { text          = "foo"
+                                             , caseSensitive = False
+                                             , leftBoundary  = NoBoundary
+                                             , rightBoundary = NoBoundary
+                                             , global        = False }
+                           , transform = Replace "bar" }
 
-        replace "foo foo foo" tgt "bar" `shouldBe` "bar foo foo"
+        applyOperation op "foo foo foo" `shouldBe` "bar foo foo"
 
     describe "unicode replacement" $ do
       it "replaces a unicode target with ASCII" $ do
-        let tgt = Target { text          = "你好世界"
-                         , caseSensitive = False
-                         , leftBoundary  = NoBoundary
-                         , rightBoundary = NoBoundary
-                         , global        = False }
+        let op = Operation { target = Target { text          = "你好世界"
+                                             , caseSensitive = False
+                                             , leftBoundary  = NoBoundary
+                                             , rightBoundary = NoBoundary
+                                             , global        = False }
+                           , transform = Replace "Hello World" }
 
-        replace "Hello World" tgt "Hello World" `shouldBe` "Hello World"
+        applyOperation op "Hello World" `shouldBe` "Hello World"
 
       it "replaces ASCII with unicode" $ do
-        let tgt = Target { text          = "你好世界"
-                         , caseSensitive = False
-                         , leftBoundary  = NoBoundary
-                         , rightBoundary = NoBoundary
-                         , global        = False }
+        let op = Operation { target = Target { text          = "Hello World"
+                                             , caseSensitive = False
+                                             , leftBoundary  = NoBoundary
+                                             , rightBoundary = NoBoundary
+                                             , global        = False }
+                           , transform = Replace "你好世界" }
+        applyOperation op "Hello World" `shouldBe` "你好世界"
 
-        replace "你好世界" tgt "Hello World" `shouldBe` "Hello World"
-
-    describe "truncateTrailing" $ do
+    describe "truncate trailing" $ do
       it "removes text trailing the match" $ do
-        let tgt = Target { text          = "foo"
-                         , caseSensitive = False
-                         , leftBoundary  = NoBoundary
-                         , rightBoundary = NoBoundary
-                         , global        = False }
+        let op = Operation { target = Target { text          = "foo"
+                                             , caseSensitive = False
+                                             , leftBoundary  = NoBoundary
+                                             , rightBoundary = NoBoundary
+                                             , global        = False }
+                           , transform = TruncateTrailing }
 
-        truncateTrailing "foo bar" tgt `shouldBe` "foo"
+        applyOperation op "foo bar" `shouldBe` "foo"
 
       it "does not change capitalization of the match" $ do
-        let tgt = Target { text          = "fOo"
-                         , caseSensitive = False
-                         , leftBoundary  = NoBoundary
-                         , rightBoundary = NoBoundary
-                         , global        = False }
+        let op = Operation { target = Target { text          = "fOo"
+                                             , caseSensitive = False
+                                             , leftBoundary  = NoBoundary
+                                             , rightBoundary = NoBoundary
+                                             , global        = False }
+                           , transform = TruncateTrailing }
 
-        truncateTrailing "foo bar" tgt `shouldBe` "foo"
+        applyOperation op "foo bar" `shouldBe` "foo"
 
       it "removes text trailing multiple matches when target is global" $ do
-        let tgt = Target { text          = "foo"
-                         , caseSensitive = False
-                         , leftBoundary  = NoBoundary
-                         , rightBoundary = NoBoundary
-                         , global        = True }
+        let op = Operation { target = Target { text          = "foo"
+                                             , caseSensitive = False
+                                             , leftBoundary  = NoBoundary
+                                             , rightBoundary = NoBoundary
+                                             , global        = True }
+                           , transform = TruncateTrailing }
 
-        truncateTrailing "some foo bar foo baz foo buzz" tgt `shouldBe` "some foofoofoo"
+        applyOperation op "some foo bar foo baz foo buzz"
+          `shouldBe` "some foofoofoo"
 
       it "removes all trailing text when multiple matches are found but the target is not global" $ do
-        let tgt = Target { text          = "foo"
-                         , caseSensitive = False
-                         , leftBoundary  = NoBoundary
-                         , rightBoundary = NoBoundary
-                         , global        = False }
+        let op = Operation { target = Target { text          = "foo"
+                                             , caseSensitive = False
+                                             , leftBoundary  = NoBoundary
+                                             , rightBoundary = NoBoundary
+                                             , global        = False }
+                           , transform = TruncateTrailing }
 
-        truncateTrailing "some foo bar foo baz foo buzz" tgt `shouldBe` "some foo"
+        applyOperation op "some foo bar foo baz foo buzz" `shouldBe` "some foo"
 
     describe "titleize" $ do
       it "titleizes the string" $ do
-        let tgt = Target { text          = "green tree"
-                         , caseSensitive = False
-                         , leftBoundary  = NoBoundary
-                         , rightBoundary = NoBoundary
-                         , global        = False }
+        let op = Operation { target = Target { text          = "green tree"
+                                             , caseSensitive = False
+                                             , leftBoundary  = NoBoundary
+                                             , rightBoundary = NoBoundary
+                                             , global        = False }
+                           , transform = Titleize }
 
-        titleize "green tree" tgt `shouldBe` "Green Tree"
+        applyOperation op "green tree" `shouldBe` "Green Tree"
 
       it "titleizes many occurrences of the string when global is enabled" $ do
-        let tgt = Target { text          = "green tree"
-                         , caseSensitive = False
-                         , leftBoundary  = NoBoundary
-                         , rightBoundary = NoBoundary
-                         , global        = True }
+        let op = Operation { target = Target { text          = "green tree"
+                                             , caseSensitive = False
+                                             , leftBoundary  = NoBoundary
+                                             , rightBoundary = NoBoundary
+                                             , global        = True }
+                           , transform = Titleize }
 
-        titleize "there is a green tree the green tree is very green" tgt
+        applyOperation op "there is a green tree the green tree is very green"
           `shouldBe` "there is a Green Tree the Green Tree is very green"

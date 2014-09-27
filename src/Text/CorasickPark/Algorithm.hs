@@ -3,11 +3,7 @@
 module Text.CorasickPark.Algorithm
        ( OperationSet(..)
        , findAndApplyTransformations
-
-       , replace
-       , titleize
-       , truncateTrailing
-
+       , applyOperation
        , updateStateMachines
        ) where
 
@@ -35,6 +31,49 @@ import Text.CorasickPark.Parser ( parseToStrings
 findAndApplyTransformations :: String -> MachineSet -> String
 findAndApplyTransformations s stateMachines =
   foldr applyOperation s $ findOperations stateMachines s
+
+applyOperation :: Operation -> String -> String
+applyOperation
+  (Operation { target = tgt
+             , transform = Replace replacement
+             }) input = replace input tgt replacement
+
+applyOperation
+  (Operation { target = tgt
+             , transform = Upcase
+             }) input = transformWith input tgt (map toUpper)
+
+applyOperation
+  (Operation { target = tgt
+             , transform = Downcase
+             }) input = transformWith input tgt (map toLower)
+
+applyOperation
+  (Operation { target = tgt
+             , transform = Titleize
+             }) input = titleize input tgt
+
+applyOperation
+  (Operation { target = tgt
+             , transform = TruncateTrailing
+             }) input = truncateTrailing input tgt
+
+updateStateMachines :: MVar OperationMachines -> OperationSet -> IO ()
+updateStateMachines opmapvar
+  (OperationSet { setName = sn, allOperations = ao }) = do
+
+  let (caseSensitiveOps, nonCaseSensitiveOps) =
+        partition (caseSensitive . target) ao
+
+
+  existingOps <- takeMVar opmapvar
+  _ <- putMVar opmapvar $ L.insert sn
+       ( generateStateMachine caseSensitiveOps
+       , generateStateMachine nonCaseSensitiveOps )
+       existingOps
+
+  return ()
+
 
 replace :: String -- ^ Input text string
         -> Target -- ^ Target to match
@@ -88,49 +127,6 @@ findOperations (caseSensitiveSMs, nonCaseSensitiveSMs) toTarget =
         , findAll nonCaseSensitiveSMs (map toLower toTarget)) in
 
       uncurry (++) (map pVal caseSensitiveOps, map pVal nonCaseSensitiveOps)
-
-updateStateMachines :: MVar OperationMachines -> OperationSet -> IO ()
-updateStateMachines opmapvar
-  (OperationSet { setName = sn, allOperations = ao }) = do
-
-  let (caseSensitiveOps, nonCaseSensitiveOps) =
-        partition (caseSensitive . target) ao
-
-
-  existingOps <- takeMVar opmapvar
-  _ <- putMVar opmapvar $ L.insert sn
-       ( generateStateMachine caseSensitiveOps
-       , generateStateMachine nonCaseSensitiveOps )
-       existingOps
-
-  return ()
-
-
-applyOperation :: Operation -> String -> String
-applyOperation
-  (Operation { target = tgt
-             , transform = Replace replacement
-             }) input = replace input tgt replacement
-
-applyOperation
-  (Operation { target = tgt
-             , transform = Upcase
-             }) input = transformWith input tgt (map toUpper)
-
-applyOperation
-  (Operation { target = tgt
-             , transform = Downcase
-             }) input = transformWith input tgt (map toLower)
-
-applyOperation
-  (Operation { target = tgt
-             , transform = Titleize
-             }) input = titleize input tgt
-
-applyOperation
-  (Operation { target = tgt
-             , transform = TruncateTrailing
-             }) input = truncateTrailing input tgt
 
 -- | Given a list of operations, update the state machines to find patterns.
 generateStateMachine :: [Operation] -> StateMachine Char Operation
