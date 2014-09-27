@@ -93,12 +93,11 @@ instance FromJSON BoundaryType where
   parseJSON (String "input") = return InputBoundary
   parseJSON _                = mzero
 
-
+type MachineSet = ( StateMachine Char Operation, StateMachine Char Operation )
 
 -- | Map of bucket names pointing to a tuple of case sensitive and non-case
 -- sensitive state machines, respectively
-type OperationMachines = L.LRU String ( StateMachine Char Operation
-                                      , StateMachine Char Operation )
+type OperationMachines = L.LRU String MachineSet
 
 
 data App = App

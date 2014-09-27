@@ -32,10 +32,7 @@ import Text.CorasickPark.Parser ( parseToStrings
 
 -- | Searches for all transformations in the given state machine
 -- selectively applies the ones that match based on boundaries.
-findAndApplyTransformations :: String
-                            -> ( StateMachine Char Operation
-                               , StateMachine Char Operation )
-                            -> String
+findAndApplyTransformations :: String -> MachineSet -> String
 findAndApplyTransformations s stateMachines =
   foldr applyOperation s $ findOperations stateMachines s
 
@@ -84,9 +81,7 @@ truncateTrailing input tgt =
       else ""
 
 
-findOperations :: (StateMachine Char Operation, StateMachine Char Operation)
-               -> String
-               -> [Operation]
+findOperations :: MachineSet -> String -> [Operation]
 findOperations (caseSensitiveSMs, nonCaseSensitiveSMs) toTarget =
   let (caseSensitiveOps, nonCaseSensitiveOps) =
         ( findAll caseSensitiveSMs toTarget
