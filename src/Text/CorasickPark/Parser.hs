@@ -20,15 +20,15 @@ import Text.CorasickPark.Types ( BoundaryType(..)
                                , MatchSegment(..) )
 
 parseToStrings :: String -> Target -> [String]
-parseToStrings string target =
-  case parse (parser target) "(input)" string of
-    Left _ -> [string]
+parseToStrings input target =
+  case parse (parser target) "(input)" input of
+    Left _ -> [input]
     Right matches -> matches
 
 parseToMatchSegments :: String -> Target -> [MatchSegment]
-parseToMatchSegments string target =
-  case parse (parserWithSegments target) "(input)" string of
-    Left _ -> [Remaining string]
+parseToMatchSegments input target =
+  case parse (parserWithSegments target) "(input)" input of
+    Left _ -> [Remaining input]
     Right matches -> matches
 
 parser :: Target -> Parsec String () [String]

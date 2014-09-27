@@ -43,31 +43,31 @@ replace :: String -- ^ Input text string
         -> Target -- ^ Target to match
         -> String -- ^ The string to replace
         -> String -- ^ The Text with substitutions applied
-replace input target replacement =
-  intercalate replacement $ parseToStrings input target
+replace input tgt replacement =
+  intercalate replacement $ parseToStrings input tgt
 
 transformWith :: String -- ^ Input text string
               -> Target -- ^ Target to match
               -> (String -> String) -- ^ Function to apply to String
               -> String -- ^ String with transformation function applied
-transformWith input target fn =
-  intercalate withFn $ parseToStrings input target
+transformWith input tgt fn =
+  intercalate withFn $ parseToStrings input tgt
 
-  where withFn = fn (text target)
+  where withFn = fn (text tgt)
 
 titleize :: String -- ^ Input text string
          -> Target -- ^ Target to match
          -> String -- ^ String with matching terms titleized
-titleize input target =
-  intercalate titleized $ parseToStrings input target
+titleize input tgt =
+  intercalate titleized $ parseToStrings input tgt
 
-  where titleized = I.titleize $ map Word $ words (text target)
+  where titleized = I.titleize $ map Word $ words (text tgt)
 
 truncateTrailing :: String -- ^ Input text string
               -> Target -- ^ Target to match
               -> String -- ^ String with text trailing matches removed
-truncateTrailing input target =
-  concatMap segmentToString $ zip [0..] $ parseToMatchSegments input target
+truncateTrailing input tgt =
+  concatMap segmentToString $ zip [0..] $ parseToMatchSegments input tgt
 
   where
     segmentToString :: (Integer, MatchSegment) -> String
