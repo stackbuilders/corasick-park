@@ -55,6 +55,7 @@ transformWith input tgt fn =
 
   where withFn = fn (text tgt)
 
+-- | Capitalizes the first word in each matched instance.
 titleize :: String -- ^ Input text string
          -> Target -- ^ Target to match
          -> String -- ^ String with matching terms titleized
@@ -63,9 +64,10 @@ titleize input tgt =
 
   where titleized = I.titleize $ map Word $ words (text tgt)
 
+-- | Removes the text trailing each instance of the match.
 truncateTrailing :: String -- ^ Input text string
-              -> Target -- ^ Target to match
-              -> String -- ^ String with text trailing matches removed
+                 -> Target -- ^ Target to match
+                 -> String -- ^ String with text trailing matches removed
 truncateTrailing input tgt =
   concatMap segmentToString $ zip [0..] $ parseToMatchSegments input tgt
 
