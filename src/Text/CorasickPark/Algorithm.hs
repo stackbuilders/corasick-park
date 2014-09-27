@@ -34,28 +34,23 @@ findAndApplyTransformations s stateMachines =
 
 applyOperation :: Operation -> String -> String
 applyOperation
-  (Operation { target = tgt
-             , transform = Replace replacement
+  (Operation { target = tgt, transform = Replace replacement
              }) input = replace input tgt replacement
 
 applyOperation
-  (Operation { target = tgt
-             , transform = Upcase
+  (Operation { target = tgt, transform = Upcase
              }) input = transformWith input tgt (map toUpper)
 
 applyOperation
-  (Operation { target = tgt
-             , transform = Downcase
+  (Operation { target = tgt, transform = Downcase
              }) input = transformWith input tgt (map toLower)
 
 applyOperation
-  (Operation { target = tgt
-             , transform = Titleize
+  (Operation { target = tgt, transform = Titleize
              }) input = titleize input tgt
 
 applyOperation
-  (Operation { target = tgt
-             , transform = TruncateTrailing
+  (Operation { target = tgt, transform = TruncateTrailing
              }) input = truncateTrailing input tgt
 
 updateStateMachines :: MVar OperationMachines -> OperationSet -> IO ()
