@@ -9,6 +9,28 @@ import Text.CorasickPark.Algorithm
 
 spec :: Spec
 spec = do
+  describe "downcase" $ do
+    it "changes the target to lower-case" $ do
+      let op = Operation { target = Target { text          = "FOO"
+                                           , caseSensitive = True
+                                           , leftBoundary  = InputBoundary
+                                           , rightBoundary = InputBoundary
+                                           , global        = False }
+                         , transform = Downcase }
+
+      applyOperation op "FOO" `shouldBe` "foo"
+
+  describe "upcase" $ do
+    it "changes the target to upper-case" $ do
+      let op = Operation { target = Target { text          = "foo"
+                                           , caseSensitive = True
+                                           , leftBoundary  = InputBoundary
+                                           , rightBoundary = InputBoundary
+                                           , global        = False }
+                         , transform = Upcase }
+
+      applyOperation op "foo" `shouldBe` "FOO"
+
   describe "replace" $ do
     describe "with NoBoundary on RHS and LHS" $ do
       it "matches when the string matches" $ do
